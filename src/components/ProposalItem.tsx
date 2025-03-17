@@ -1,11 +1,9 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { ChevronDown, Info, Clock, Users, Link, ExternalLink, MessageSquare } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 
 interface Resource {
@@ -29,6 +27,7 @@ interface ProposalItemProps {
   stakeholders?: string[];
   resources?: Resource[];
   className?: string;
+  overviewNote?: string;
 }
 
 const ProposalItem: React.FC<ProposalItemProps> = ({
@@ -47,6 +46,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
   stakeholders,
   resources,
   className,
+  overviewNote
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -72,6 +72,9 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
     if (!deliverable) return "";
     
     const parts = deliverable.split(" ")[0];
+    // Skip the first entry in the list which is the main section
+    if (parts === "1") return "";
+    
     const dotCount = (parts.match(/\./g) || []).length;
     
     switch (dotCount) {
@@ -82,6 +85,21 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
     }
   };
 
+  const getNumberBadge = (deliverable: string) => {
+    const parts = deliverable.split(" ");
+    const sectionId = parts[0];
+    const restOfText = parts.slice(1).join(" ");
+    
+    return (
+      <>
+        <span className="inline-flex items-center justify-center min-w-6 h-6 bg-gray-800 text-white text-xs font-medium rounded-md px-1.5">
+          {sectionId}
+        </span>
+        <span>{restOfText}</span>
+      </>
+    );
+  };
+
   return (
     <Collapsible 
       open={isOpen} 
@@ -89,26 +107,9 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
       className={cn("proposal-item group animate-slide-in-left border border-border p-6 rounded-lg bg-white hover:shadow-md transition-all duration-300 dark:bg-gray-900", className)}
     >
       <div className="flex items-center gap-5">
-        <HoverCard>
-          <HoverCardTrigger asChild>
-            <div className="w-12 h-12 flex items-center justify-center rounded-md bg-white border border-gray-100 cursor-pointer hover:scale-105 transition-transform dark:bg-gray-800 dark:border-gray-700">
-              {logo}
-            </div>
-          </HoverCardTrigger>
-          <HoverCardContent className="w-80">
-            <div className="flex justify-between space-y-1">
-              <h4 className="text-sm font-semibold">{company}</h4>
-            </div>
-            <p className="text-sm">
-              {description?.substring(0, 100)}...
-            </p>
-            {timeline && (
-              <div className="flex items-center pt-2">
-                <span className="text-xs text-muted-foreground">Timeline: {timeline}</span>
-              </div>
-            )}
-          </HoverCardContent>
-        </HoverCard>
+        <div className="w-12 h-12 flex items-center justify-center rounded-md bg-white border border-gray-100 cursor-pointer hover:scale-105 transition-transform dark:bg-gray-800 dark:border-gray-700">
+          {logo}
+        </div>
         
         <div className="flex-1">
           <div className="flex justify-between items-start">
@@ -124,12 +125,14 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                   </PopoverTrigger>
                   <PopoverContent className="w-80 p-3">
                     <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Overview</h4>
-                      <p className="text-xs text-muted-foreground">{description}</p>
+                      <div className="space-y-1">
+                        <h4 className="font-medium text-sm">Overview</h4>
+                        <p className="text-sm text-muted-foreground">{description}</p>
+                      </div>
                       {notes && (
-                        <div className="pt-2">
+                        <div className="space-y-1">
                           <h4 className="font-medium text-sm">Note</h4>
-                          <p className="text-xs text-muted-foreground">{notes}</p>
+                          <p className="text-sm text-muted-foreground">{notes}</p>
                         </div>
                       )}
                     </div>
@@ -167,26 +170,17 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
       </div>
       
       <CollapsibleContent className="mt-6 space-y-6 bg-gray-50 p-5 rounded-md dark:bg-gray-800/50">
-        {description && (
-          <div>
-            <h4 className="text-sm font-medium mb-2">Overview</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-          </div>
-        )}
-        
         {deliverables && deliverables.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-3">Requirements</h4>
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {deliverables.map((item, index) => {
-                const parts = item.split(" ");
-                const sectionId = parts[0];
-                const restOfText = parts.slice(1).join(" ");
+                // Skip the first entry which is the main section header (e.g. "1 Testing Framework")
+                if (index === 0) return null;
                 
                 return (
                   <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item)}`}>
-                    <span className="text-sm">{sectionId}</span>
-                    <span>{restOfText}</span>
+                    {getNumberBadge(item)}
                   </li>
                 );
               })}
@@ -202,7 +196,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                 Sign-Off Stakeholders
               </h4>
               <ul className="space-y-1">
-                {stakeholders.slice(0, 4).map((stakeholder, index) => (
+                {stakeholders.map((stakeholder, index) => (
                   <li key={index} className="text-sm text-muted-foreground">
                     • {stakeholder}
                   </li>
@@ -248,4 +242,3 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
 };
 
 export default ProposalItem;
-

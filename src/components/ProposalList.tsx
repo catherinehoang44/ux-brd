@@ -4,7 +4,7 @@ import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Info, ArrowUpDown, Users, X, MessageSquare } from 'lucide-react';
+import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Info, ArrowUpDown, Users, X, MessageSquare, Layout, FileCheck } from 'lucide-react';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 interface ProposalListProps {
   className?: string;
@@ -22,6 +21,7 @@ interface ProposalListProps {
   onToggleEmailBar?: () => void;
   onSubscribe?: (email: string) => void;
   isSubscribed?: boolean;
+  exclusions?: string[];
 }
 
 const formSchema = z.object({
@@ -36,7 +36,8 @@ const ProposalList: React.FC<ProposalListProps> = ({
   isEmailBarVisible = true,
   onToggleEmailBar,
   onSubscribe,
-  isSubscribed = false
+  isSubscribed = false,
+  exclusions = []
 }) => {
   const [sortBy, setSortBy] = useState<'priority' | 'deadline'>('priority');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // desc = high to low
@@ -53,14 +54,14 @@ const ProposalList: React.FC<ProposalListProps> = ({
     },
   });
 
-  // Icons for each section
+  // Icons for each section - updated to all be gray
   const logoComponents = {
-    testing: <div className="text-orange-500"><ClipboardList size={24} /></div>,
-    data: <div className="text-green-500"><BarChart2 size={24} /></div>,
-    approval: <div className="text-blue-500"><CheckSquare size={24} /></div>,
-    quality: <div className="text-purple-500"><CheckCircle size={24} /></div>,
-    design: <div className="text-gray-700"><CheckCircle size={24} /></div>,
-    info: <div className="text-gray-900"><Info size={24} /></div>,
+    testing: <div className="text-gray-500"><ClipboardList size={24} /></div>,
+    data: <div className="text-gray-500"><BarChart2 size={24} /></div>,
+    approval: <div className="text-gray-500"><CheckSquare size={24} /></div>,
+    quality: <div className="text-gray-500"><CheckCircle size={24} /></div>,
+    design: <div className="text-gray-500"><Layout size={24} /></div>,
+    info: <div className="text-gray-500"><FileCheck size={24} /></div>,
   };
 
   const handleSort = (type: 'priority' | 'deadline') => {
@@ -93,7 +94,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
     }
   };
 
-  // UX Business Requirements Document sections - updating to standardized numbering
+  // UX Business Requirements Document sections - updating numbering
   const uxRequirements = [
     {
       id: 1,
@@ -104,7 +105,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review in 7 days",
       description: "This section defines the comprehensive testing methodologies required for validating UX improvements to the Adobe Certification Portal.",
       deliverables: [
-        "1.0 UX Testing Framework",
+        "1 Testing Framework",
         "1.1 Maze Testing Implementation",
         "1.1.1 All major user journeys must be tested through Maze prior to development",
         "1.1.2 Minimum sample size of 30 participants required for statistical validity",
@@ -143,7 +144,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review in 5 days",
       description: "Comprehensive data collection requirements to ensure all user interactions are properly tracked and analyzed to inform UX decisions.",
       deliverables: [
-        "1.0 Data Collection Framework",
+        "1 Data Collection Framework",
         "1.1 User Behavior Metrics",
         "1.1.1 Time on page for all certification paths must be tracked",
         "1.1.2 User drop-off points must be identified and analyzed",
@@ -183,7 +184,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review in 10 days",
       description: "Structured approval processes for all UX deliverables to ensure consistent quality and alignment with business objectives.",
       deliverables: [
-        "1.0 Approval Workflow Framework",
+        "1 Approval Workflow Framework",
         "1.1 UX Design Approvals",
         "1.1.1 Wireframes must receive stakeholder sign-off before high-fidelity design",
         "1.1.2 High-fidelity designs must be approved by design system team",
@@ -219,7 +220,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review in 14 days",
       description: "Detailed requirements for quality assurance processes to validate UX implementations against approved designs and specifications.",
       deliverables: [
-        "1.0 Quality Assurance Framework",
+        "1 Quality Assurance Framework",
         "1.1 UAT Requirements",
         "1.1.1 UX team participation required for all UAT sessions",
         "1.1.2 Comprehensive documentation of all UAT findings required",
@@ -255,7 +256,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review in 7 days",
       description: "Specifications for design system implementation, responsive design requirements, and accessibility standards for the certification portal.",
       deliverables: [
-        "1.0 Design System Implementation",
+        "1 Design System Implementation",
         "1.1 Component Requirements",
         "1.1.1 All interface components must comply with Adobe Spectrum design system",
         "1.1.2 Component modifications must be approved by design system team",
@@ -295,7 +296,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review today",
       description: "Detailed criteria for accepting completed UX implementations and validating that all requirements have been met according to specifications.",
       deliverables: [
-        "1.0 Acceptance Framework",
+        "1 Acceptance Framework",
         "1.1 UX Testing Acceptance",
         "1.1.1 All testing results must be documented and reviewed",
         "1.1.2 Critical usability issues must be resolved before acceptance",
@@ -484,19 +485,35 @@ const ProposalList: React.FC<ProposalListProps> = ({
               notes={item.notes}
               stakeholders={item.stakeholders}
               resources={item.resources}
+              overviewNote={item.overviewNote}
             />
           </div>
         ))}
       </div>
       
+      {/* Exclusions Section */}
+      {exclusions && exclusions.length > 0 && (
+        <div className="mt-12 pt-6 border-t border-border">
+          <h2 className="text-xl font-medium mb-5">Exclusions: Out of Scope</h2>
+          <ul className="space-y-2">
+            {exclusions.map((exclusion, index) => (
+              <li key={index} className="text-gray-600 dark:text-gray-300 flex items-start gap-2">
+                <span className="text-gray-400">•</span>
+                <span>{exclusion}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
       {isEmailBarVisible && (
         <div 
-          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white/70 dark:bg-gray-800/40 py-2 px-5 rounded-lg shadow-sm border border-border/5 max-w-xl w-full mx-auto transition-all duration-300 hover:shadow-md z-10 backdrop-blur-sm"
+          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-transparent dark:bg-transparent py-2 px-5 rounded-lg shadow-sm border border-border/5 max-w-xl w-full mx-auto transition-all duration-300 hover:shadow-md z-10 backdrop-blur-sm"
           onMouseEnter={() => setEmailBarHovered(true)}
           onMouseLeave={() => setEmailBarHovered(false)}
         >
           <button 
-            className={`absolute -top-2 -right-2 h-6 w-6 bg-transparent rounded-full flex items-center justify-center text-gray-400/60 dark:text-gray-500/60 hover:bg-gray-200/60 dark:hover:bg-gray-600/60 transition-opacity transition-colors ${emailBarHovered ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute top-1/2 -right-2 transform -translate-y-1/2 h-6 w-6 bg-transparent rounded-full flex items-center justify-center text-gray-400/60 dark:text-gray-500/60 hover:bg-gray-200/60 dark:hover:bg-gray-600/60 transition-opacity transition-colors ${emailBarHovered ? 'opacity-100' : 'opacity-0'}`}
             onClick={onToggleEmailBar}
           >
             <X className="h-3.5 w-3.5" />

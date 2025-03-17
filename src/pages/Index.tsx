@@ -20,6 +20,15 @@ const Index = () => {
     setIsSubscribed(true);
   };
   
+  const exclusions = [
+    "Content creation and authoring workflows for certification exams.",
+    "Back-end systems integration with third-party certification platforms.",
+    "IT infrastructure and hardware requirements.",
+    "Staff training and organizational change management.",
+    "Marketing and promotional strategies for certifications.",
+    "Financial processing and payment gateway implementations."
+  ];
+  
   return (
     <ProposalLayout 
       title="UX Business Requirements" 
@@ -39,6 +48,7 @@ const Index = () => {
             onToggleEmailBar={handleToggleEmailBar}
             onSubscribe={handleSubscribe}
             isSubscribed={isSubscribed}
+            exclusions={exclusions}
           />
         </div>
       </div>

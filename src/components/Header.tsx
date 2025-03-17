@@ -47,6 +47,7 @@ const Header: React.FC<HeaderProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="FY25Q2">FY25 Q2</SelectItem>
+              {/* No other options as requested */}
             </SelectContent>
           </Select>
           <p className="text-sm text-muted-foreground">Last updated: March 17, 2025</p>
