@@ -68,6 +68,20 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
     }
   };
 
+  const getIndentClass = (deliverable: string) => {
+    if (!deliverable) return "";
+    
+    const parts = deliverable.split(" ")[0];
+    const dotCount = (parts.match(/\./g) || []).length;
+    
+    switch (dotCount) {
+      case 0: return ""; // No indent for main sections
+      case 1: return "ml-6"; // First level indent
+      case 2: return "ml-12"; // Second level indent
+      default: return "ml-12"; // Default to second level for anything deeper
+    }
+  };
+
   return (
     <Collapsible 
       open={isOpen} 
@@ -114,11 +128,8 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                       <p className="text-xs text-muted-foreground">{description}</p>
                       {notes && (
                         <div className="pt-2">
-                          <div className="flex items-center gap-1">
-                            <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
-                            <h4 className="font-medium text-xs">Note:</h4>
-                          </div>
-                          <p className="text-xs text-muted-foreground pl-5">{notes}</p>
+                          <h4 className="font-medium text-sm">Note</h4>
+                          <p className="text-xs text-muted-foreground">{notes}</p>
                         </div>
                       )}
                     </div>
@@ -167,14 +178,18 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
           <div>
             <h4 className="text-sm font-medium mb-3">Requirements</h4>
             <ul className="space-y-2">
-              {deliverables.map((item, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <span className="inline-flex size-5 items-center justify-center rounded-full bg-primary/10 text-primary mt-0.5">
-                    <span className="text-xs font-medium">{index + 1}</span>
-                  </span>
-                  <span>{item}</span>
-                </li>
-              ))}
+              {deliverables.map((item, index) => {
+                const parts = item.split(" ");
+                const sectionId = parts[0];
+                const restOfText = parts.slice(1).join(" ");
+                
+                return (
+                  <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item)}`}>
+                    <span className="text-sm">{sectionId}</span>
+                    <span>{restOfText}</span>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
@@ -187,7 +202,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                 Sign-Off Stakeholders
               </h4>
               <ul className="space-y-1">
-                {stakeholders.map((stakeholder, index) => (
+                {stakeholders.slice(0, 4).map((stakeholder, index) => (
                   <li key={index} className="text-sm text-muted-foreground">
                     • {stakeholder}
                   </li>
@@ -233,3 +248,4 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
 };
 
 export default ProposalItem;
+
