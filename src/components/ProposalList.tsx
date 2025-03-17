@@ -4,6 +4,7 @@ import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Settings, Info } from 'lucide-react';
 
 interface ProposalListProps {
   className?: string;
@@ -11,107 +12,140 @@ interface ProposalListProps {
 }
 
 const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) => {
-  // Demo logos using stylized text (in a real app, these would be actual images or SVGs)
+  // Icons for each section
   const logoComponents = {
-    delphi: <div className="text-2xl font-bold text-orange-500">ⓓⓓ</div>,
-    tradestream: <div className="text-2xl font-bold text-green-500">ⓣⓢ</div>,
-    character: <div className="text-2xl font-bold text-gray-700">ⓒⓐ</div>,
-    flint: <div className="text-2xl font-bold text-gray-900">ⓕⓛ</div>,
+    testing: <div className="text-orange-500"><ClipboardList size={24} /></div>,
+    data: <div className="text-green-500"><BarChart2 size={24} /></div>,
+    approval: <div className="text-blue-500"><CheckSquare size={24} /></div>,
+    quality: <div className="text-purple-500"><CheckCircle size={24} /></div>,
+    design: <div className="text-gray-700"><Settings size={24} /></div>,
+    info: <div className="text-gray-900"><Info size={24} /></div>,
   };
 
-  // Default items if none provided - with enhanced business proposal details
-  const defaultItems = [
+  // UX Business Requirements Document sections
+  const uxRequirements = [
     {
       id: 1,
-      company: 'Delphi Digital',
-      logo: logoComponents.delphi,
-      role: 'Website Redesign Project',
-      location: 'San Francisco',
-      timeAgo: 'Due in 30 days',
-      description: 'Complete overhaul of the corporate website with focus on improved user experience, faster loading times, and better conversion rates. Includes new information architecture and content strategy.',
+      company: "UX Testing Framework",
+      logo: logoComponents.testing,
+      role: "Testing Methodologies & Implementation",
+      location: "Priority: High",
+      timeAgo: "Review in 7 days",
+      description: "This section defines the comprehensive testing methodologies required for validating UX improvements to the Adobe Certification Portal.",
       deliverables: [
-        'Responsive website redesign',
-        'CMS implementation',
-        'SEO optimization',
-        'Analytics dashboard setup'
+        "Maze Testing Implementation - Min. 30 participants",
+        "Usability Testing - Min. 8 participants, recorded sessions",
+        "A/B Testing - Min. 2 weeks duration, p<0.05 significance"
       ],
-      timeline: '12 weeks',
-      budget: '$75,000 - $95,000'
+      timeline: "Q1 2024",
+      budget: "40 hours per major feature"
     },
     {
       id: 2,
-      company: 'Tradestream',
-      logo: logoComponents.tradestream,
-      role: 'Mobile App Development',
-      location: 'Remote (EU)',
-      timeAgo: 'Due in 45 days',
-      description: 'Design and development of a mobile trading application for iOS and Android platforms. The app will feature real-time market data, customizable dashboards, and secure transaction processing.',
+      company: "Data Tracking Requirements",
+      logo: logoComponents.data,
+      role: "User Behavior & Metrics",
+      location: "Priority: Critical",
+      timeAgo: "Review in 5 days",
+      description: "Comprehensive data collection requirements to ensure all user interactions are properly tracked and analyzed to inform UX decisions.",
       deliverables: [
-        'UI/UX design',
-        'iOS and Android applications',
-        'Backend API development',
-        'Admin dashboard'
+        "User Behavior Metrics - Time on page, drop-off points",
+        "Certification Metrics - Completion rates, abandonment patterns",
+        "User Feedback Data - Satisfaction scores, NPS ratings",
+        "Technical Performance - Load times, error rates"
       ],
-      timeline: '16 weeks',
-      budget: '$120,000 - $150,000'
+      timeline: "Ongoing",
+      budget: "Dashboard setup + monthly analysis"
     },
     {
       id: 3,
-      company: 'Character AI',
-      logo: logoComponents.character,
-      role: 'AI Integration Services',
-      location: 'Menlo Park, CA',
-      salary: '$150K-$200K',
-      timeAgo: 'Due in 60 days',
-      description: 'Implementation of conversational AI assistants across customer service channels. Includes training on company-specific data, integration with existing CRM systems, and ongoing optimization.',
+      company: "Approval Workflows",
+      logo: logoComponents.approval,
+      role: "Design & Implementation Sign-offs",
+      location: "Priority: Medium",
+      timeAgo: "Review in 10 days",
+      description: "Structured approval processes for all UX deliverables to ensure consistent quality and alignment with business objectives.",
       deliverables: [
-        'AI model customization',
-        'CRM system integration',
-        'Voice and chat interfaces',
-        'Performance analytics'
+        "UX Design Approvals - Wireframes, high-fidelity designs",
+        "Research Findings Approvals - Methodologies, implementation",
+        "Implementation Approvals - Visual, interaction components"
       ],
-      timeline: '20 weeks',
-      budget: '$200,000 - $250,000'
+      timeline: "Process implementation by Q2 2024",
+      budget: "Process documentation + training"
     },
     {
       id: 4,
-      company: 'Flint Technologies',
-      logo: logoComponents.flint,
-      role: 'Data Security Audit',
-      location: 'San Francisco',
-      timeAgo: 'Due in 15 days',
-      description: 'Comprehensive security audit of all data systems and infrastructure. Includes penetration testing, vulnerability assessment, and detailed recommendations for security improvements.',
+      company: "Quality Assurance & Validation",
+      logo: logoComponents.quality,
+      role: "Testing & Validation Protocols",
+      location: "Priority: High",
+      timeAgo: "Review in 14 days",
+      description: "Detailed requirements for quality assurance processes to validate UX implementations against approved designs and specifications.",
       deliverables: [
-        'Security assessment report',
-        'Penetration test results',
-        'Remediation roadmap',
-        'Security training materials'
+        "UAT Requirements - UX team participation, documentation",
+        "QA Requirements - Visual consistency, interaction patterns",
+        "Research Requests - Standardized templates, planning timelines"
       ],
-      timeline: '6 weeks',
-      budget: '$45,000 - $60,000'
+      timeline: "Q2-Q3 2024",
+      budget: "20 hours per feature release"
+    },
+    {
+      id: 5,
+      company: "Design Requirements",
+      logo: logoComponents.design,
+      role: "Design System & Implementation",
+      location: "Priority: High",
+      timeAgo: "Review in 7 days",
+      description: "Specifications for design system implementation, responsive design requirements, and accessibility standards for the certification portal.",
+      deliverables: [
+        "Design System Implementation - Adobe Spectrum compliance",
+        "Responsive Design - 320px to 1920px width support",
+        "Accessibility Requirements - WCAG 2.1 AA compliance",
+        "Performance Standards - Max 2s load time, 100ms response"
+      ],
+      timeline: "Q1-Q3 2024",
+      budget: "Component library + implementation"
+    },
+    {
+      id: 6,
+      company: "Acceptance Criteria",
+      logo: logoComponents.info,
+      role: "Validation & Project Completion",
+      location: "Priority: Critical",
+      timeAgo: "Final review",
+      description: "Detailed criteria for accepting completed UX implementations and validating that all requirements have been met according to specifications.",
+      deliverables: [
+        "UX Testing Framework Acceptance - Documented results",
+        "Data Collection Acceptance - Verified metrics tracking",
+        "Approval Workflow Acceptance - Completed documentation",
+        "UX Implementation Acceptance - Visual & functional validation",
+        "Performance Acceptance - Core Web Vitals compliance"
+      ],
+      timeline: "Final project milestone",
+      budget: "Validation workshops + reports"
     }
   ];
 
-  const displayItems = items.length > 0 ? items : defaultItems;
+  const displayItems = items.length > 0 ? items : uxRequirements;
 
   return (
     <div className={cn("space-y-3 w-full", className)}>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-medium">Current Proposals</h2>
+        <h2 className="text-xl font-medium">Document Sections</h2>
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm">Submit New</Button>
+            <Button variant="outline" size="sm">Request Update</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Submit New Proposal</DialogTitle>
+              <DialogTitle>Request Document Update</DialogTitle>
               <DialogDescription>
-                Create a new business proposal to add to your dashboard.
+                Submit a change request for this UX Business Requirements Document.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <p className="text-sm text-muted-foreground">
-                This feature would allow you to create new proposals. Form implementation would go here.
+                This feature would allow stakeholders to request changes or updates to specific sections of the requirements document.
               </p>
             </div>
           </DialogContent>
@@ -125,9 +159,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
           logo={item.logo}
           role={item.role}
           location={item.location}
-          salary={item.salary}
           timeAgo={item.timeAgo}
-          additionalInfo={item.additionalInfo}
           description={item.description}
           deliverables={item.deliverables}
           timeline={item.timeline}
@@ -142,7 +174,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
           placeholder="your@email.com"
           className="w-full bg-transparent outline-none text-sm"
         />
-        <span className="text-sm font-medium">Get proposal updates</span>
+        <span className="text-sm font-medium">Get document updates</span>
       </div>
     </div>
   );
