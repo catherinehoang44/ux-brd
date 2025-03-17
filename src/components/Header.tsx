@@ -14,11 +14,11 @@ const Header: React.FC<HeaderProps> = ({ title, price = "Approve" }) => {
       <div className="flex flex-col items-start">
         <span className="text-sm text-muted-foreground mb-1">Adobe Certification Portal</span>
         <h1 className="text-3xl font-light tracking-tight">{title}</h1>
-        <p className="text-sm text-muted-foreground mt-1">Version 1.0 • Last updated: June 15, 2024</p>
+        <p className="text-sm text-muted-foreground mt-1">Version 1.0 • Last updated: March 17, 2025</p>
       </div>
       <Button 
         variant="outline" 
-        className="rounded-full px-6 py-2 border border-border bg-white hover:bg-secondary transition-colors duration-300"
+        className="rounded-full px-6 py-2 border border-border bg-white hover:bg-secondary transition-colors duration-300 dark:bg-background dark:hover:bg-secondary"
       >
         <CheckSquare className="mr-2 h-4 w-4" />
         {price}

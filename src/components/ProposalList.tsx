@@ -1,17 +1,46 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Settings, Info } from 'lucide-react';
+import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Settings, Info, ArrowUpDown } from 'lucide-react';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
 
 interface ProposalListProps {
   className?: string;
   items?: any[];
 }
 
+const formSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  section: z.string().min(1, { message: "Please select a section" }),
+  message: z.string().min(10, { message: "Message must be at least 10 characters" }),
+});
+
 const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) => {
+  const [sortBy, setSortBy] = useState<'priority' | 'deadline'>('priority');
+  const [updateEmail, setUpdateEmail] = useState('');
+  
+  // Form setup
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      section: "",
+      message: "",
+    },
+  });
+
   // Icons for each section
   const logoComponents = {
     testing: <div className="text-orange-500"><ClipboardList size={24} /></div>,
@@ -22,6 +51,26 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
     info: <div className="text-gray-900"><Info size={24} /></div>,
   };
 
+  const handleSort = (type: 'priority' | 'deadline') => {
+    setSortBy(type);
+  };
+
+  const handleSubmitUpdate = (values: z.infer<typeof formSchema>) => {
+    console.log(values);
+    toast.success("Update request submitted successfully.");
+    form.reset();
+  };
+
+  const handleDocUpdates = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (updateEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.success("You've been subscribed to document updates.");
+      setUpdateEmail('');
+    } else {
+      toast.error("Please enter a valid email address.");
+    }
+  };
+
   // UX Business Requirements Document sections
   const uxRequirements = [
     {
@@ -29,7 +78,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
       company: "UX Testing Framework",
       logo: logoComponents.testing,
       role: "Testing Methodologies & Implementation",
-      location: "Priority: High",
+      location: "High",
       timeAgo: "Review in 7 days",
       description: "This section defines the comprehensive testing methodologies required for validating UX improvements to the Adobe Certification Portal.",
       deliverables: [
@@ -45,7 +94,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
       company: "Data Tracking Requirements",
       logo: logoComponents.data,
       role: "User Behavior & Metrics",
-      location: "Priority: Critical",
+      location: "Critical",
       timeAgo: "Review in 5 days",
       description: "Comprehensive data collection requirements to ensure all user interactions are properly tracked and analyzed to inform UX decisions.",
       deliverables: [
@@ -62,7 +111,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
       company: "Approval Workflows",
       logo: logoComponents.approval,
       role: "Design & Implementation Sign-offs",
-      location: "Priority: Medium",
+      location: "Medium",
       timeAgo: "Review in 10 days",
       description: "Structured approval processes for all UX deliverables to ensure consistent quality and alignment with business objectives.",
       deliverables: [
@@ -78,7 +127,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
       company: "Quality Assurance & Validation",
       logo: logoComponents.quality,
       role: "Testing & Validation Protocols",
-      location: "Priority: High",
+      location: "High",
       timeAgo: "Review in 14 days",
       description: "Detailed requirements for quality assurance processes to validate UX implementations against approved designs and specifications.",
       deliverables: [
@@ -94,7 +143,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
       company: "Design Requirements",
       logo: logoComponents.design,
       role: "Design System & Implementation",
-      location: "Priority: High",
+      location: "High",
       timeAgo: "Review in 7 days",
       description: "Specifications for design system implementation, responsive design requirements, and accessibility standards for the certification portal.",
       deliverables: [
@@ -111,7 +160,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
       company: "Acceptance Criteria",
       logo: logoComponents.info,
       role: "Validation & Project Completion",
-      location: "Priority: Critical",
+      location: "Critical",
       timeAgo: "Final review",
       description: "Detailed criteria for accepting completed UX implementations and validating that all requirements have been met according to specifications.",
       deliverables: [
@@ -126,30 +175,142 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
     }
   ];
 
-  const displayItems = items.length > 0 ? items : uxRequirements;
+  // Sort the requirements based on the selected sort type
+  const sortedRequirements = [...uxRequirements].sort((a, b) => {
+    if (sortBy === 'priority') {
+      // Priority order: Critical > High > Medium > Low
+      const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+      return priorityOrder[a.location as keyof typeof priorityOrder] - priorityOrder[b.location as keyof typeof priorityOrder];
+    } else {
+      // Extract the number of days from the timeAgo string
+      const daysA = a.timeAgo.includes('days') 
+        ? parseInt(a.timeAgo.match(/\d+/)?.[0] || '999') 
+        : (a.timeAgo.includes('Final') ? 0 : 999);
+      const daysB = b.timeAgo.includes('days') 
+        ? parseInt(b.timeAgo.match(/\d+/)?.[0] || '999') 
+        : (b.timeAgo.includes('Final') ? 0 : 999);
+      return daysA - daysB;
+    }
+  });
+
+  const displayItems = items.length > 0 ? items : sortedRequirements;
 
   return (
     <div className={cn("space-y-3 w-full", className)}>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-medium">Document Sections</h2>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm">Request Update</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Request Document Update</DialogTitle>
-              <DialogDescription>
-                Submit a change request for this UX Business Requirements Document.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <p className="text-sm text-muted-foreground">
-                This feature would allow stakeholders to request changes or updates to specific sections of the requirements document.
-              </p>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Sort by:</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={cn(sortBy === 'priority' && "bg-secondary")}
+              onClick={() => handleSort('priority')}
+            >
+              Priority
+              <ArrowUpDown className="ml-1 h-3 w-3" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={cn(sortBy === 'deadline' && "bg-secondary")}
+              onClick={() => handleSort('deadline')}
+            >
+              Deadline
+              <ArrowUpDown className="ml-1 h-3 w-3" />
+            </Button>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">Request Update</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Request Document Update</DialogTitle>
+                <DialogDescription>
+                  Submit a change request for this UX Business Requirements Document.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmitUpdate)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="your@email.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="section"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Document Section</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a section" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="testing">UX Testing Framework</SelectItem>
+                            <SelectItem value="data">Data Tracking Requirements</SelectItem>
+                            <SelectItem value="approval">Approval Workflows</SelectItem>
+                            <SelectItem value="quality">Quality Assurance & Validation</SelectItem>
+                            <SelectItem value="design">Design Requirements</SelectItem>
+                            <SelectItem value="acceptance">Acceptance Criteria</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="message"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Your Request</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Please describe the changes you'd like to request..."
+                            rows={4}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Be as specific as possible about the changes you're requesting.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full">Submit Request</Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       
       {displayItems.map((item, index) => (
@@ -168,13 +329,21 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         />
       ))}
       
-      <div className="w-full flex justify-between items-center bg-white rounded-lg p-4 border border-border mt-6">
-        <input 
-          type="email"
-          placeholder="your@email.com"
-          className="w-full bg-transparent outline-none text-sm"
-        />
-        <span className="text-sm font-medium">Get document updates</span>
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border py-3 px-4 flex justify-center">
+        <div className="w-full max-w-4xl flex justify-between items-center">
+          <form onSubmit={handleDocUpdates} className="flex flex-1 max-w-md gap-3">
+            <Input 
+              type="email"
+              placeholder="your@email.com"
+              value={updateEmail}
+              onChange={(e) => setUpdateEmail(e.target.value)}
+              className="bg-transparent outline-none text-sm"
+            />
+            <Button type="submit" variant="default" size="sm">
+              Get Document Updates
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );
