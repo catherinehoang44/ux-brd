@@ -103,12 +103,34 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review in 7 days",
       description: "This section defines the comprehensive testing methodologies required for validating UX improvements to the Adobe Certification Portal.",
       deliverables: [
-        "Maze Testing Implementation - Min. 30 participants",
-        "Usability Testing - Min. 8 participants, recorded sessions",
-        "A/B Testing - Min. 2 weeks duration, p<0.05 significance"
+        "1.0 UX Testing Framework",
+        "1.1 Maze Testing Implementation",
+        "1.1.1 All major user journeys must be tested through Maze prior to development",
+        "1.1.2 Minimum sample size of 30 participants required for statistical validity",
+        "1.1.3 Tests must include both usability metrics and preference data",
+        "1.1.4 Reports must be generated within 5 business days of test completion",
+        "1.2 Usability Testing Requirements",
+        "1.2.1 Moderated sessions required for complex interaction patterns",
+        "1.2.2 Sessions must be recorded and stored in designated repository",
+        "1.2.3 Minimum of 8 participants required for qualitative insights",
+        "1.2.4 Testing protocol must include both directed tasks and exploratory scenarios",
+        "1.3 A/B Testing Framework",
+        "1.3.1 Critical conversion points must undergo A/B testing",
+        "1.3.2 Minimum test duration of 2 weeks to account for user variances",
+        "1.3.3 Clear success metrics must be established prior to test launch",
+        "1.3.4 Results must achieve statistical significance (p<0.05) before implementation"
       ],
       notes: "Implementation timeline dependent on Research team availability",
-      stakeholders: ["UX Research Lead", "UX Manager", "Product Owner"],
+      stakeholders: [
+        "Marketing & Communications Lead", 
+        "Design System Manager", 
+        "Exam Development Lead", 
+        "Course Developer Director", 
+        "University Partnerships", 
+        "Gamification Specialist", 
+        "Group Manager", 
+        "Data Analytics Team"
+      ],
       resources: [
         { name: "Testing Protocol", url: "#testing-protocol" },
         { name: "Research Guidelines", url: "#research-guidelines" }
@@ -124,13 +146,34 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review in 5 days",
       description: "Comprehensive data collection requirements to ensure all user interactions are properly tracked and analyzed to inform UX decisions.",
       deliverables: [
-        "User Behavior Metrics - Time on page, drop-off points",
-        "Certification Metrics - Completion rates, abandonment patterns",
-        "User Feedback Data - Satisfaction scores, NPS ratings",
-        "Technical Performance - Load times, error rates"
+        "2.0 Data Collection Framework",
+        "2.1 User Behavior Metrics",
+        "2.1.1 Time on page for all certification paths must be tracked",
+        "2.1.2 User drop-off points must be identified and analyzed",
+        "2.1.3 User journey funnels must be established for key conversion paths",
+        "2.2 Certification Metrics",
+        "2.2.1 Completion rates by certification type must be tracked",
+        "2.2.2 Abandonment patterns must be identified by certification path",
+        "2.2.3 Time to completion metrics must be established",
+        "2.3 User Feedback Collection",
+        "2.3.1 Satisfaction scores must be collected post-certification",
+        "2.3.2 NPS ratings must be tracked quarterly",
+        "2.3.3 User sentiment analysis must be conducted on feedback",
+        "2.4 Technical Performance",
+        "2.4.1 Page load times must not exceed 2 seconds",
+        "2.4.2 Error rates must be tracked and reported weekly",
+        "2.4.3 System availability must maintain 99.9% uptime"
       ],
       notes: "Ongoing monitoring and quarterly analysis required",
-      stakeholders: ["Analytics Manager", "UX Manager", "Technical Lead"],
+      stakeholders: [
+        "Marketing Analytics Team", 
+        "Data Science Director", 
+        "UX Research Lead", 
+        "Technical Performance Lead", 
+        "Product Strategy", 
+        "Customer Success Manager", 
+        "Industry Compliance Officer"
+      ],
       resources: [
         { name: "Data Schema", url: "#data-schema" },
         { name: "Analytics Dashboard", url: "#analytics-dashboard" }
@@ -146,12 +189,30 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review in 10 days",
       description: "Structured approval processes for all UX deliverables to ensure consistent quality and alignment with business objectives.",
       deliverables: [
-        "UX Design Approvals - Wireframes, high-fidelity designs",
-        "Research Findings Approvals - Methodologies, implementation",
-        "Implementation Approvals - Visual, interaction components"
+        "3.0 Approval Workflow Framework",
+        "3.1 UX Design Approvals",
+        "3.1.1 Wireframes must receive stakeholder sign-off before high-fidelity design",
+        "3.1.2 High-fidelity designs must be approved by design system team",
+        "3.1.3 Interaction patterns must be validated against usability standards",
+        "3.2 Research Findings Approvals",
+        "3.2.1 Research methodologies must be approved prior to implementation",
+        "3.2.2 Findings must be reviewed by cross-functional team",
+        "3.2.3 Implementation recommendations must receive product strategy approval",
+        "3.3 Implementation Approvals",
+        "3.3.1 Visual implementation must be validated against design specifications",
+        "3.3.2 Interaction components must be validated against specifications",
+        "3.3.3 Accessibility compliance must be verified before release"
       ],
       notes: "Process implementation by Q2 2024",
-      stakeholders: ["UX Director", "Product Owner", "Design System Lead"],
+      stakeholders: [
+        "Design Operations Director", 
+        "Product Strategy Lead", 
+        "Accessibility Specialist", 
+        "Design System Architect", 
+        "Digital Marketing Lead", 
+        "User Education Team", 
+        "Enterprise Customer Representative"
+      ],
       resources: [
         { name: "Approval Templates", url: "#approval-templates" },
         { name: "Workflow Diagrams", url: "#workflow-diagrams" }
@@ -167,12 +228,30 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review in 14 days",
       description: "Detailed requirements for quality assurance processes to validate UX implementations against approved designs and specifications.",
       deliverables: [
-        "UAT Requirements - UX team participation, documentation",
-        "QA Requirements - Visual consistency, interaction patterns",
-        "Research Requests - Standardized templates, planning timelines"
+        "4.0 Quality Assurance Framework",
+        "4.1 UAT Requirements",
+        "4.1.1 UX team participation required for all UAT sessions",
+        "4.1.2 Comprehensive documentation of all UAT findings required",
+        "4.1.3 Prioritization framework for UX issues must be established",
+        "4.2 QA Requirements",
+        "4.2.1 Visual consistency must be validated across all platforms",
+        "4.2.2 Interaction patterns must be validated against specifications",
+        "4.2.3 Responsive design must be validated across device types",
+        "4.3 Research Requests",
+        "4.3.1 Standardized templates for research requests must be used",
+        "4.3.2 Planning timelines must include research review periods",
+        "4.3.3 Research outcomes must be incorporated into QA criteria"
       ],
       notes: "Implementation timeline spans Q2-Q3 2024",
-      stakeholders: ["QA Lead", "UX Manager", "Development Lead"],
+      stakeholders: [
+        "QA Test Lead", 
+        "UX Research Director", 
+        "Development Operations", 
+        "Cross-Browser Testing Specialist", 
+        "Mobile Platform Lead", 
+        "Localization Team", 
+        "Regional Compliance Officer"
+      ],
       resources: [
         { name: "UAT Scripts", url: "#uat-scripts" },
         { name: "QA Checklist", url: "#qa-checklist" }
@@ -188,13 +267,34 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review in 7 days",
       description: "Specifications for design system implementation, responsive design requirements, and accessibility standards for the certification portal.",
       deliverables: [
-        "Design System Implementation - Adobe Spectrum compliance",
-        "Responsive Design - 320px to 1920px width support",
-        "Accessibility Requirements - WCAG 2.1 AA compliance",
-        "Performance Standards - Max 2s load time, 100ms response"
+        "5.0 Design System Implementation",
+        "5.1 Component Requirements",
+        "5.1.1 All interface components must comply with Adobe Spectrum design system",
+        "5.1.2 Component modifications must be approved by design system team",
+        "5.1.3 Component documentation must be maintained and updated",
+        "5.2 Responsive Design",
+        "5.2.1 All interfaces must support viewport widths from 320px to 1920px",
+        "5.2.2 Touch-friendly interaction patterns required for mobile interfaces",
+        "5.2.3 Component behaviors must be consistent across device types",
+        "5.3 Accessibility Requirements",
+        "5.3.1 All interfaces must comply with WCAG 2.1 AA standards",
+        "5.3.2 Keyboard navigation must be fully supported",
+        "5.3.3 Screen reader compatibility must be verified",
+        "5.4 Performance Standards",
+        "5.4.1 Maximum load time must not exceed 2 seconds on broadband",
+        "5.4.2 Interface response time must not exceed 100ms",
+        "5.4.3 Animation performance must maintain 60fps on target devices"
       ],
       notes: "Implementation timeline spans Q1-Q3 2024",
-      stakeholders: ["Design System Lead", "Accessibility Expert", "UX Manager"],
+      stakeholders: [
+        "Design System Lead", 
+        "Accessibility Expert", 
+        "Frontend Performance Specialist", 
+        "Mobile UX Designer", 
+        "Visual Design Director", 
+        "Interaction Designer", 
+        "User Education Specialist"
+      ],
       resources: [
         { name: "Spectrum Guidelines", url: "#spectrum-guidelines" },
         { name: "Accessibility Standards", url: "#accessibility-standards" }
@@ -210,14 +310,38 @@ const ProposalList: React.FC<ProposalListProps> = ({
       timeAgo: "Review today",
       description: "Detailed criteria for accepting completed UX implementations and validating that all requirements have been met according to specifications.",
       deliverables: [
-        "UX Testing Framework Acceptance - Documented results",
-        "Data Collection Acceptance - Verified metrics tracking",
-        "Approval Workflow Acceptance - Completed documentation",
-        "UX Implementation Acceptance - Visual & functional validation",
-        "Performance Acceptance - Core Web Vitals compliance"
+        "6.0 Acceptance Framework",
+        "6.1 UX Testing Acceptance",
+        "6.1.1 All testing results must be documented and reviewed",
+        "6.1.2 Critical usability issues must be resolved before acceptance",
+        "6.1.3 Testing coverage must meet minimum requirements",
+        "6.2 Data Collection Acceptance",
+        "6.2.1 All specified metrics must be verified for accurate tracking",
+        "6.2.2 Data visualization must be available and functional",
+        "6.2.3 Analytics reports must be configured and accessible",
+        "6.3 Approval Workflow Acceptance",
+        "6.3.1 All required approvals must be documented",
+        "6.3.2 Sign-off documentation must be complete and archived",
+        "6.3.3 Audit trail must be maintained for all approvals",
+        "6.4 UX Implementation Acceptance",
+        "6.4.1 Visual implementation must match approved designs",
+        "6.4.2 Interaction patterns must function as specified",
+        "6.4.3 Edge cases must be handled appropriately",
+        "6.5 Performance Acceptance",
+        "6.5.1 Core Web Vitals must meet or exceed requirements",
+        "6.5.2 Performance testing results must be documented",
+        "6.5.3 Performance optimization recommendations must be provided"
       ],
       notes: "Final project milestone with executive sign-off required",
-      stakeholders: ["UX Director", "Product Owner", "Technical Director"],
+      stakeholders: [
+        "UX Director", 
+        "Product Owner", 
+        "Technical Director", 
+        "Executive Sponsor", 
+        "Certification Program Director", 
+        "Customer Success Lead", 
+        "Learning Science Advisor"
+      ],
       resources: [
         { name: "Acceptance Templates", url: "#acceptance-templates" },
         { name: "Validation Checklist", url: "#validation-checklist" }
@@ -392,7 +516,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
       </div>
       
       {isEmailBarVisible && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800/80 py-3 px-5 rounded-lg shadow-sm border border-border/30 max-w-xl w-full mx-auto transition-all duration-300 hover:shadow-md z-10 backdrop-blur-sm">
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white/80 dark:bg-gray-800/60 py-2 px-5 rounded-lg shadow-sm border border-border/10 max-w-xl w-full mx-auto transition-all duration-300 hover:shadow-md z-10 backdrop-blur-sm">
           <button 
             className="absolute -top-2 -right-2 h-6 w-6 bg-gray-200/80 dark:bg-gray-700/80 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             onClick={onToggleEmailBar}
@@ -405,10 +529,10 @@ const ProposalList: React.FC<ProposalListProps> = ({
               placeholder="your@email.com"
               value={updateEmail}
               onChange={(e) => setUpdateEmail(e.target.value)}
-              className="bg-transparent outline-none text-sm flex-1"
+              className="bg-transparent border-gray-200/70 dark:border-gray-700/70 text-sm flex-1"
             />
-            <Button type="submit" variant="outline" size="sm">
-              Get Document Updates
+            <Button type="submit" variant="outline" size="sm" className="text-xs">
+              Get Updates
             </Button>
           </form>
         </div>

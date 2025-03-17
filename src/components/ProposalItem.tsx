@@ -110,16 +110,17 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                   </PopoverTrigger>
                   <PopoverContent className="w-80 p-3">
                     <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Section Details</h4>
+                      <h4 className="font-medium text-sm">Overview</h4>
                       <p className="text-xs text-muted-foreground">{description}</p>
-                      <Table>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell className="py-1 pl-0 text-xs font-medium">Timeline</TableCell>
-                            <TableCell className="py-1 pr-0 text-xs">{timeline}</TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                      {notes && (
+                        <div className="pt-2">
+                          <div className="flex items-center gap-1">
+                            <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                            <h4 className="font-medium text-xs">Note:</h4>
+                          </div>
+                          <p className="text-xs text-muted-foreground pl-5">{notes}</p>
+                        </div>
+                      )}
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -164,7 +165,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
         
         {deliverables && deliverables.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium mb-3">Key Deliverables</h4>
+            <h4 className="text-sm font-medium mb-3">Requirements</h4>
             <ul className="space-y-2">
               {deliverables.map((item, index) => (
                 <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -183,7 +184,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
             <div>
               <h4 className="text-sm font-medium mb-3 flex items-center gap-1">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                Key Stakeholders
+                Sign-Off Stakeholders
               </h4>
               <ul className="space-y-1">
                 {stakeholders.map((stakeholder, index) => (
