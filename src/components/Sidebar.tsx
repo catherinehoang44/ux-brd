@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Sun, Moon, Link, Settings, Workflow } from 'lucide-react';
+import { Sun, Moon, Link, Workflow } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -78,17 +78,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
               </TooltipTrigger>
               <TooltipContent side="right">
                 <p>Adobe Certification Portal</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="sidebar-item">
-                  <Settings className="w-5 h-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Settings</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

@@ -3,7 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
-import { ChevronDown, Info, Clock, Users, Link, ExternalLink } from 'lucide-react';
+import { ChevronDown, Info, Clock, Users, Link, ExternalLink, MessageSquare } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ interface ProposalItemProps {
   additionalInfo?: string;
   description?: string;
   deliverables?: string[];
+  notes?: string;
   timeline?: string;
   budget?: string;
   stakeholders?: string[];
@@ -40,6 +41,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
   additionalInfo,
   description,
   deliverables,
+  notes,
   timeline,
   budget,
   stakeholders,
@@ -70,9 +72,9 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
     <Collapsible 
       open={isOpen} 
       onOpenChange={setIsOpen}
-      className={cn("proposal-item group animate-slide-in-left border border-border p-4 rounded-lg bg-white hover:shadow-md transition-all duration-300 dark:bg-gray-900", className)}
+      className={cn("proposal-item group animate-slide-in-left border border-border p-6 rounded-lg bg-white hover:shadow-md transition-all duration-300 dark:bg-gray-900", className)}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-5">
         <HoverCard>
           <HoverCardTrigger asChild>
             <div className="w-12 h-12 flex items-center justify-center rounded-md bg-white border border-gray-100 cursor-pointer hover:scale-105 transition-transform dark:bg-gray-800 dark:border-gray-700">
@@ -152,18 +154,18 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
         </div>
       </div>
       
-      <CollapsibleContent className="mt-4 space-y-4 bg-gray-50 p-4 rounded-md dark:bg-gray-800/50">
+      <CollapsibleContent className="mt-6 space-y-6 bg-gray-50 p-5 rounded-md dark:bg-gray-800/50">
         {description && (
           <div>
             <h4 className="text-sm font-medium mb-2">Overview</h4>
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
           </div>
         )}
         
         {deliverables && deliverables.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium mb-2">Key Deliverables</h4>
-            <ul className="space-y-1">
+            <h4 className="text-sm font-medium mb-3">Key Deliverables</h4>
+            <ul className="space-y-2">
               {deliverables.map((item, index) => (
                 <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="inline-flex size-5 items-center justify-center rounded-full bg-primary/10 text-primary mt-0.5">
@@ -176,10 +178,10 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
           </div>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {stakeholders && stakeholders.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
+              <h4 className="text-sm font-medium mb-3 flex items-center gap-1">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 Key Stakeholders
               </h4>
@@ -195,7 +197,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
           
           {resources && resources.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
+              <h4 className="text-sm font-medium mb-3 flex items-center gap-1">
                 <Link className="h-4 w-4 text-muted-foreground" />
                 Quick Links
               </h4>
@@ -217,10 +219,10 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
         </div>
         
         <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
-          {timeline && (
+          {notes && (
             <span className="text-xs flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="font-medium">Timeline:</span> {timeline}
+              <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="font-medium">Note:</span> {notes}
             </span>
           )}
         </div>

@@ -4,7 +4,7 @@ import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Settings, Info, ArrowUpDown, Users, Link } from 'lucide-react';
+import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Settings, Info, ArrowUpDown, Users, Link, X, MessageSquare } from 'lucide-react';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface ProposalListProps {
   className?: string;
@@ -31,6 +30,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
   const [sortBy, setSortBy] = useState<'priority' | 'deadline'>('priority');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // desc = high to low
   const [updateEmail, setUpdateEmail] = useState('');
+  const [isUpdateBarVisible, setIsUpdateBarVisible] = useState(true);
   
   // Form setup
   const form = useForm<z.infer<typeof formSchema>>({
@@ -95,7 +95,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "Usability Testing - Min. 8 participants, recorded sessions",
         "A/B Testing - Min. 2 weeks duration, p<0.05 significance"
       ],
-      timeline: "Q1 2024",
+      notes: "Implementation timeline dependent on Research team availability",
       stakeholders: ["UX Research Lead", "UX Manager", "Product Owner"],
       resources: [
         { name: "Testing Protocol", url: "#testing-protocol" },
@@ -116,7 +116,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "User Feedback Data - Satisfaction scores, NPS ratings",
         "Technical Performance - Load times, error rates"
       ],
-      timeline: "Ongoing",
+      notes: "Ongoing monitoring and quarterly analysis required",
       stakeholders: ["Analytics Manager", "UX Manager", "Technical Lead"],
       resources: [
         { name: "Data Schema", url: "#data-schema" },
@@ -136,7 +136,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "Research Findings Approvals - Methodologies, implementation",
         "Implementation Approvals - Visual, interaction components"
       ],
-      timeline: "Process implementation by Q2 2024",
+      notes: "Process implementation by Q2 2024",
       stakeholders: ["UX Director", "Product Owner", "Design System Lead"],
       resources: [
         { name: "Approval Templates", url: "#approval-templates" },
@@ -156,7 +156,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "QA Requirements - Visual consistency, interaction patterns",
         "Research Requests - Standardized templates, planning timelines"
       ],
-      timeline: "Q2-Q3 2024",
+      notes: "Implementation timeline spans Q2-Q3 2024",
       stakeholders: ["QA Lead", "UX Manager", "Development Lead"],
       resources: [
         { name: "UAT Scripts", url: "#uat-scripts" },
@@ -177,7 +177,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "Accessibility Requirements - WCAG 2.1 AA compliance",
         "Performance Standards - Max 2s load time, 100ms response"
       ],
-      timeline: "Q1-Q3 2024",
+      notes: "Implementation timeline spans Q1-Q3 2024",
       stakeholders: ["Design System Lead", "Accessibility Expert", "UX Manager"],
       resources: [
         { name: "Spectrum Guidelines", url: "#spectrum-guidelines" },
@@ -190,7 +190,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
       logo: logoComponents.info,
       role: "Validation & Project Completion",
       location: "Critical",
-      timeAgo: "Final review",
+      timeAgo: "Review today",
       description: "Detailed criteria for accepting completed UX implementations and validating that all requirements have been met according to specifications.",
       deliverables: [
         "UX Testing Framework Acceptance - Documented results",
@@ -199,7 +199,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "UX Implementation Acceptance - Visual & functional validation",
         "Performance Acceptance - Core Web Vitals compliance"
       ],
-      timeline: "Final project milestone",
+      notes: "Final project milestone with executive sign-off required",
       stakeholders: ["UX Director", "Product Owner", "Technical Director"],
       resources: [
         { name: "Acceptance Templates", url: "#acceptance-templates" },
@@ -219,10 +219,10 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
       // Extract the number of days from the timeAgo string
       const daysA = a.timeAgo.includes('days') 
         ? parseInt(a.timeAgo.match(/\d+/)?.[0] || '999') 
-        : (a.timeAgo.includes('Final') ? 0 : 999);
+        : (a.timeAgo.includes('today') ? 0 : 999);
       const daysB = b.timeAgo.includes('days') 
         ? parseInt(b.timeAgo.match(/\d+/)?.[0] || '999') 
-        : (b.timeAgo.includes('Final') ? 0 : 999);
+        : (b.timeAgo.includes('today') ? 0 : 999);
       return sortDirection === 'desc' ? daysA - daysB : daysB - daysA;
     }
   });
@@ -230,9 +230,9 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
   const displayItems = items.length > 0 ? items : sortedRequirements;
 
   return (
-    <div className={cn("space-y-3 w-full", className)}>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-medium">Document Sections</h2>
+    <div className={cn("space-y-6 w-full", className)}>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-medium">Requirements</h2>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Sort by:</span>
@@ -347,39 +347,47 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         </div>
       </div>
       
-      {displayItems.map((item, index) => (
-        <ProposalItem
-          key={item.id}
-          company={item.company}
-          logo={item.logo}
-          role={item.role}
-          location={item.location}
-          timeAgo={item.timeAgo}
-          description={item.description}
-          deliverables={item.deliverables}
-          timeline={item.timeline}
-          stakeholders={item.stakeholders}
-          resources={item.resources}
-          className={`transition-all duration-${300 + index * 75}`}
-        />
-      ))}
+      <div className="space-y-6">
+        {displayItems.map((item, index) => (
+          <ProposalItem
+            key={item.id}
+            company={item.company}
+            logo={item.logo}
+            role={item.role}
+            location={item.location}
+            timeAgo={item.timeAgo}
+            description={item.description}
+            deliverables={item.deliverables}
+            notes={item.notes}
+            stakeholders={item.stakeholders}
+            resources={item.resources}
+            className={`transition-all duration-${300 + index * 75}`}
+          />
+        ))}
+      </div>
       
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border py-3 px-4 flex justify-center">
-        <div className="w-full max-w-4xl flex justify-between items-center">
-          <form onSubmit={handleDocUpdates} className="flex flex-1 max-w-md gap-3">
+      {isUpdateBarVisible && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 py-3 px-5 rounded-lg shadow-md border border-border max-w-xl w-full mx-auto transition-all duration-300 hover:shadow-lg z-10">
+          <button 
+            className="absolute -top-2 -right-2 h-6 w-6 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            onClick={() => setIsUpdateBarVisible(false)}
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+          <form onSubmit={handleDocUpdates} className="flex w-full gap-3">
             <Input 
               type="email"
               placeholder="your@email.com"
               value={updateEmail}
               onChange={(e) => setUpdateEmail(e.target.value)}
-              className="bg-transparent outline-none text-sm"
+              className="bg-transparent outline-none text-sm flex-1"
             />
             <Button type="submit" variant="default" size="sm">
               Get Document Updates
             </Button>
           </form>
         </div>
-      </div>
+      )}
     </div>
   );
 };
