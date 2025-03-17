@@ -30,7 +30,7 @@ const ProposalLayout: React.FC<ProposalLayoutProps> = ({
         <main className={cn("px-8 pb-12", className)}>
           {children}
         </main>
-        <Toaster position="top-center" />
+        <Toaster position="bottom-right" />
       </div>
     </div>
   );

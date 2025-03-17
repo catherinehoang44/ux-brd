@@ -5,9 +5,19 @@ import ProposalList from '@/components/ProposalList';
 
 const Index = () => {
   const [approvalCount, setApprovalCount] = useState(0);
+  const [isEmailBarVisible, setIsEmailBarVisible] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   
   const handleApproval = (isApproved: boolean) => {
     setApprovalCount(prev => isApproved ? prev + 1 : Math.max(0, prev - 1));
+  };
+  
+  const handleToggleEmailBar = () => {
+    setIsEmailBarVisible(prev => !prev);
+  };
+  
+  const handleSubscribe = (email: string) => {
+    setIsSubscribed(true);
   };
   
   return (
@@ -24,7 +34,12 @@ const Index = () => {
             This document outlines the comprehensive UX business requirements for the Adobe Certification Portal (ACP). 
             The ACP serves as the primary platform for users to discover, register for, complete, and manage their Adobe DX product certifications.
           </p>
-          <ProposalList />
+          <ProposalList 
+            isEmailBarVisible={isEmailBarVisible} 
+            onToggleEmailBar={handleToggleEmailBar}
+            onSubscribe={handleSubscribe}
+            isSubscribed={isSubscribed}
+          />
         </div>
       </div>
     </ProposalLayout>

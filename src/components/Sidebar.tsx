@@ -1,15 +1,21 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Sun, Moon, Link, Workflow } from 'lucide-react';
+import { Sun, Moon, Link, Workflow, Mail } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTheme } from '@/hooks/useTheme';
 
 interface SidebarProps {
   className?: string;
+  onToggleEmailBar?: () => void;
+  isSubscribed?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ className }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  className, 
+  onToggleEmailBar,
+  isSubscribed = false
+}) => {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -49,6 +55,23 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         
         <div className="mt-auto flex flex-col gap-6">
           <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  className="sidebar-item"
+                  onClick={onToggleEmailBar}
+                >
+                  <Mail className="w-5 h-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {isSubscribed 
+                  ? <p>You are subscribed to document updates</p>
+                  : <p>Get Document Updates</p>
+                }
+              </TooltipContent>
+            </Tooltip>
+            
             <Tooltip>
               <TooltipTrigger asChild>
                 <a 

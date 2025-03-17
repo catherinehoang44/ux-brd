@@ -70,7 +70,7 @@ const Header: React.FC<HeaderProps> = ({
           onClick={handleApproval}
         >
           <CheckSquare className={`mr-2 h-4 w-4 transition-all duration-300 ${isApproved ? 'scale-110' : ''}`} />
-          {price}
+          {isApproved ? "Remove Approval" : price}
         </Button>
       </div>
     </div>
