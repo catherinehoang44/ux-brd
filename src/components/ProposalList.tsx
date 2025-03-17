@@ -4,7 +4,7 @@ import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Info, ArrowUpDown, Users, Link, X, MessageSquare } from 'lucide-react';
+import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Info, ArrowUpDown, Users, X, MessageSquare } from 'lucide-react';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -337,8 +337,14 @@ const ProposalList: React.FC<ProposalListProps> = ({
     if (sortBy === 'priority') {
       // Priority order: Critical > High > Medium > Low
       const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
-      const comparison = priorityOrder[a.location as keyof typeof priorityOrder] - priorityOrder[b.location as keyof typeof priorityOrder];
-      return sortDirection === 'desc' ? comparison : -comparison;
+      const priorityComparison = priorityOrder[a.location as keyof typeof priorityOrder] - priorityOrder[b.location as keyof typeof priorityOrder];
+      
+      // If same priority, sort alphabetically by company name
+      if (priorityComparison === 0) {
+        return a.company.localeCompare(b.company);
+      }
+      
+      return sortDirection === 'desc' ? priorityComparison : -priorityComparison;
     } else {
       // Extract the number of days from the timeAgo string
       const daysA = a.timeAgo.includes('days') 
@@ -347,6 +353,12 @@ const ProposalList: React.FC<ProposalListProps> = ({
       const daysB = b.timeAgo.includes('days') 
         ? parseInt(b.timeAgo.match(/\d+/)?.[0] || '999') 
         : (b.timeAgo.includes('today') ? 0 : 999);
+      
+      // If same deadline, sort alphabetically by company name
+      if (daysA === daysB) {
+        return a.company.localeCompare(b.company);
+      }
+      
       return sortDirection === 'desc' ? daysA - daysB : daysB - daysA;
     }
   });
@@ -479,12 +491,12 @@ const ProposalList: React.FC<ProposalListProps> = ({
       
       {isEmailBarVisible && (
         <div 
-          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white/80 dark:bg-gray-800/60 py-2 px-5 rounded-lg shadow-sm border border-border/5 max-w-xl w-full mx-auto transition-all duration-300 hover:shadow-md z-10 backdrop-blur-sm"
+          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white/70 dark:bg-gray-800/40 py-2 px-5 rounded-lg shadow-sm border border-border/5 max-w-xl w-full mx-auto transition-all duration-300 hover:shadow-md z-10 backdrop-blur-sm"
           onMouseEnter={() => setEmailBarHovered(true)}
           onMouseLeave={() => setEmailBarHovered(false)}
         >
           <button 
-            className={`absolute -top-2 -right-2 h-6 w-6 bg-gray-100/60 dark:bg-gray-700/60 rounded-full flex items-center justify-center text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 transition-opacity transition-colors ${emailBarHovered ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute -top-2 -right-2 h-6 w-6 bg-transparent rounded-full flex items-center justify-center text-gray-400/60 dark:text-gray-500/60 hover:bg-gray-200/60 dark:hover:bg-gray-600/60 transition-opacity transition-colors ${emailBarHovered ? 'opacity-100' : 'opacity-0'}`}
             onClick={onToggleEmailBar}
           >
             <X className="h-3.5 w-3.5" />
@@ -495,7 +507,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
               placeholder="your@email.com"
               value={updateEmail}
               onChange={(e) => setUpdateEmail(e.target.value)}
-              className="bg-transparent border-gray-200/40 dark:border-gray-700/40 text-sm flex-1"
+              className="bg-transparent border-gray-200/20 dark:border-gray-700/20 text-sm flex-1"
             />
             <Button type="submit" variant="outline" size="sm" className="text-xs">
               Get Updates
@@ -508,4 +520,3 @@ const ProposalList: React.FC<ProposalListProps> = ({
 };
 
 export default ProposalList;
-

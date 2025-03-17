@@ -47,8 +47,6 @@ const Header: React.FC<HeaderProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="FY25Q2">FY25 Q2</SelectItem>
-              <SelectItem value="FY25Q1">FY25 Q1</SelectItem>
-              <SelectItem value="FY24Q4">FY24 Q4</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-sm text-muted-foreground">Last updated: March 17, 2025</p>
@@ -78,4 +76,3 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 export default Header;
-
