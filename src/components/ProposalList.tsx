@@ -4,7 +4,7 @@ import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Settings, Info, ArrowUpDown } from 'lucide-react';
+import { ClipboardList, BarChart2, CheckSquare, CheckCircle, Settings, Info, ArrowUpDown, Users, Link } from 'lucide-react';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface ProposalListProps {
   className?: string;
@@ -28,6 +29,7 @@ const formSchema = z.object({
 
 const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) => {
   const [sortBy, setSortBy] = useState<'priority' | 'deadline'>('priority');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // desc = high to low
   const [updateEmail, setUpdateEmail] = useState('');
   
   // Form setup
@@ -52,7 +54,14 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
   };
 
   const handleSort = (type: 'priority' | 'deadline') => {
-    setSortBy(type);
+    if (sortBy === type) {
+      // Toggle direction if clicking the same sort option
+      setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
+    } else {
+      // Set new sort type with default direction (desc)
+      setSortBy(type);
+      setSortDirection('desc');
+    }
   };
 
   const handleSubmitUpdate = (values: z.infer<typeof formSchema>) => {
@@ -87,7 +96,11 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "A/B Testing - Min. 2 weeks duration, p<0.05 significance"
       ],
       timeline: "Q1 2024",
-      budget: "40 hours per major feature"
+      stakeholders: ["UX Research Lead", "UX Manager", "Product Owner"],
+      resources: [
+        { name: "Testing Protocol", url: "#testing-protocol" },
+        { name: "Research Guidelines", url: "#research-guidelines" }
+      ]
     },
     {
       id: 2,
@@ -104,7 +117,11 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "Technical Performance - Load times, error rates"
       ],
       timeline: "Ongoing",
-      budget: "Dashboard setup + monthly analysis"
+      stakeholders: ["Analytics Manager", "UX Manager", "Technical Lead"],
+      resources: [
+        { name: "Data Schema", url: "#data-schema" },
+        { name: "Analytics Dashboard", url: "#analytics-dashboard" }
+      ]
     },
     {
       id: 3,
@@ -120,7 +137,11 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "Implementation Approvals - Visual, interaction components"
       ],
       timeline: "Process implementation by Q2 2024",
-      budget: "Process documentation + training"
+      stakeholders: ["UX Director", "Product Owner", "Design System Lead"],
+      resources: [
+        { name: "Approval Templates", url: "#approval-templates" },
+        { name: "Workflow Diagrams", url: "#workflow-diagrams" }
+      ]
     },
     {
       id: 4,
@@ -136,7 +157,11 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "Research Requests - Standardized templates, planning timelines"
       ],
       timeline: "Q2-Q3 2024",
-      budget: "20 hours per feature release"
+      stakeholders: ["QA Lead", "UX Manager", "Development Lead"],
+      resources: [
+        { name: "UAT Scripts", url: "#uat-scripts" },
+        { name: "QA Checklist", url: "#qa-checklist" }
+      ]
     },
     {
       id: 5,
@@ -153,7 +178,11 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "Performance Standards - Max 2s load time, 100ms response"
       ],
       timeline: "Q1-Q3 2024",
-      budget: "Component library + implementation"
+      stakeholders: ["Design System Lead", "Accessibility Expert", "UX Manager"],
+      resources: [
+        { name: "Spectrum Guidelines", url: "#spectrum-guidelines" },
+        { name: "Accessibility Standards", url: "#accessibility-standards" }
+      ]
     },
     {
       id: 6,
@@ -171,16 +200,21 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
         "Performance Acceptance - Core Web Vitals compliance"
       ],
       timeline: "Final project milestone",
-      budget: "Validation workshops + reports"
+      stakeholders: ["UX Director", "Product Owner", "Technical Director"],
+      resources: [
+        { name: "Acceptance Templates", url: "#acceptance-templates" },
+        { name: "Validation Checklist", url: "#validation-checklist" }
+      ]
     }
   ];
 
-  // Sort the requirements based on the selected sort type
+  // Sort the requirements based on the selected sort type and direction
   const sortedRequirements = [...uxRequirements].sort((a, b) => {
     if (sortBy === 'priority') {
       // Priority order: Critical > High > Medium > Low
       const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
-      return priorityOrder[a.location as keyof typeof priorityOrder] - priorityOrder[b.location as keyof typeof priorityOrder];
+      const comparison = priorityOrder[a.location as keyof typeof priorityOrder] - priorityOrder[b.location as keyof typeof priorityOrder];
+      return sortDirection === 'desc' ? comparison : -comparison;
     } else {
       // Extract the number of days from the timeAgo string
       const daysA = a.timeAgo.includes('days') 
@@ -189,7 +223,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
       const daysB = b.timeAgo.includes('days') 
         ? parseInt(b.timeAgo.match(/\d+/)?.[0] || '999') 
         : (b.timeAgo.includes('Final') ? 0 : 999);
-      return daysA - daysB;
+      return sortDirection === 'desc' ? daysA - daysB : daysB - daysA;
     }
   });
 
@@ -209,7 +243,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
               onClick={() => handleSort('priority')}
             >
               Priority
-              <ArrowUpDown className="ml-1 h-3 w-3" />
+              <ArrowUpDown className={`ml-1 h-3 w-3 transform ${sortBy === 'priority' && sortDirection === 'asc' ? 'rotate-180' : ''}`} />
             </Button>
             <Button 
               variant="ghost" 
@@ -218,7 +252,7 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
               onClick={() => handleSort('deadline')}
             >
               Deadline
-              <ArrowUpDown className="ml-1 h-3 w-3" />
+              <ArrowUpDown className={`ml-1 h-3 w-3 transform ${sortBy === 'deadline' && sortDirection === 'asc' ? 'rotate-180' : ''}`} />
             </Button>
           </div>
           <Dialog>
@@ -324,7 +358,8 @@ const ProposalList: React.FC<ProposalListProps> = ({ className, items = [] }) =>
           description={item.description}
           deliverables={item.deliverables}
           timeline={item.timeline}
-          budget={item.budget}
+          stakeholders={item.stakeholders}
+          resources={item.resources}
           className={`transition-all duration-${300 + index * 75}`}
         />
       ))}
