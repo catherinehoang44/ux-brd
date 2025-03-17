@@ -1,13 +1,22 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React from 'react';
+import ProposalLayout from '@/components/ProposalLayout';
+import ProposalList from '@/components/ProposalList';
+import DataVisualizer from '@/components/DataVisualizer';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <ProposalLayout title="Design Engineer" price="$175">
+      <div className="flex flex-col gap-8">
+        <div className="w-full">
+          <DataVisualizer />
+        </div>
+        
+        <div className="w-full max-w-4xl">
+          <ProposalList />
+        </div>
       </div>
-    </div>
+    </ProposalLayout>
   );
 };
 
