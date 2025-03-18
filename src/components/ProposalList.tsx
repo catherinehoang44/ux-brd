@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, FileText, CheckSquare, CheckCircle, BarChart2, Layout, X, FileCheck } from 'lucide-react';
+import { ClipboardList, FileText, CheckSquare, FileCheck, BarChart2 } from 'lucide-react';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -313,11 +312,8 @@ const ProposalList: React.FC<ProposalListProps> = ({
         />
       )}
 
-      {/* Update Request Dialog */}
+      {/* Dialog content for the Request Update dialog (used by the button in SortControls) */}
       <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="outline" size="sm" className="mt-6">Request Update</Button>
-        </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Request Document Update</DialogTitle>
