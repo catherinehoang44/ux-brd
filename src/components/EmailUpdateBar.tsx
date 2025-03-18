@@ -1,0 +1,61 @@
+
+import React, { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface EmailUpdateBarProps {
+  onSubscribe?: (email: string) => void;
+  onToggleEmailBar?: () => void;
+}
+
+const EmailUpdateBar: React.FC<EmailUpdateBarProps> = ({ 
+  onSubscribe,
+  onToggleEmailBar
+}) => {
+  const [updateEmail, setUpdateEmail] = useState('');
+  const [emailBarHovered, setEmailBarHovered] = useState(false);
+
+  const handleDocUpdates = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (updateEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.success("You've been subscribed to document updates.");
+      setUpdateEmail('');
+      if (onSubscribe) {
+        onSubscribe(updateEmail);
+      }
+    } else {
+      toast.error("Please enter a valid email address.");
+    }
+  };
+
+  return (
+    <div 
+      className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-transparent py-2 px-5 rounded-lg shadow-sm border border-border/5 max-w-xl w-full mx-auto transition-all duration-300 hover:shadow-md z-10 backdrop-blur-sm"
+      onMouseEnter={() => setEmailBarHovered(true)}
+      onMouseLeave={() => setEmailBarHovered(false)}
+    >
+      <button 
+        className={`absolute top-1/2 right-2 transform -translate-y-1/2 h-6 w-6 rounded-full flex items-center justify-center text-gray-400/40 dark:text-gray-500/40 hover:bg-gray-200/40 dark:hover:bg-gray-600/40 transition-opacity transition-colors ${emailBarHovered ? 'opacity-100' : 'opacity-0'}`}
+        onClick={onToggleEmailBar}
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+      <form onSubmit={handleDocUpdates} className="flex w-full gap-3">
+        <Input 
+          type="email"
+          placeholder="your@email.com"
+          value={updateEmail}
+          onChange={(e) => setUpdateEmail(e.target.value)}
+          className="bg-transparent border-gray-200/20 dark:border-gray-700/20 text-sm flex-1"
+        />
+        <Button type="submit" variant="outline" size="sm" className="text-xs">
+          Get Updates
+        </Button>
+      </form>
+    </div>
+  );
+};
+
+export default EmailUpdateBar;

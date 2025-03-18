@@ -43,11 +43,11 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-3 mt-1">
           <Select defaultValue="FY25Q2">
             <SelectTrigger className="h-7 text-xs w-[120px] border-0 bg-transparent p-0 hover:bg-transparent focus:ring-0">
-              <SelectValue placeholder="Select version" />
+              <SelectValue placeholder="FY25 Q2" />
             </SelectTrigger>
             <SelectContent>
+              {/* Only one option as requested */}
               <SelectItem value="FY25Q2">FY25 Q2</SelectItem>
-              {/* No other options as requested */}
             </SelectContent>
           </Select>
           <p className="text-sm text-muted-foreground">Last updated: March 17, 2025</p>

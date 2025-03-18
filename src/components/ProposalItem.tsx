@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { ChevronDown, Info, Clock, Users, Link, ExternalLink, MessageSquare } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
 
 interface Resource {
   name: string;
@@ -71,32 +70,34 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
   const getIndentClass = (deliverable: string) => {
     if (!deliverable) return "";
     
-    const parts = deliverable.split(" ")[0];
-    // Skip the first entry in the list which is the main section
-    if (parts === "1") return "";
+    // Check if it's a main section (e.g., "1.0 Something")
+    if (deliverable.match(/^\d+\.0/)) return "";
     
-    const dotCount = (parts.match(/\./g) || []).length;
+    // Check how many dots are in the numbering
+    const dotCount = (deliverable.match(/\./g) || []).length;
     
     switch (dotCount) {
-      case 0: return ""; // No indent for main sections
-      case 1: return "ml-6"; // First level indent
-      case 2: return "ml-12"; // Second level indent
-      default: return "ml-12"; // Default to second level for anything deeper
+      case 1: return "ml-6"; // First level indent for x.y
+      case 2: return "ml-12"; // Second level indent for x.y.z
+      default: return ""; // No indent for main sections
     }
   };
 
-  const getNumberBadge = (deliverable: string) => {
-    const parts = deliverable.split(" ");
-    const sectionId = parts[0];
-    const restOfText = parts.slice(1).join(" ");
+  const renderNumberBadge = (deliverable: string) => {
+    // Extract the number part from the deliverable
+    const match = deliverable.match(/^(\d+\.\d+(?:\.\d+)?)/);
+    if (!match) return deliverable;
+    
+    const sectionId = match[1];
+    const restOfText = deliverable.substring(match[0].length).trim();
     
     return (
-      <>
+      <div className="flex items-center gap-2">
         <span className="inline-flex items-center justify-center min-w-6 h-6 bg-gray-800 text-white text-xs font-medium rounded-md px-1.5">
           {sectionId}
         </span>
         <span>{restOfText}</span>
-      </>
+      </div>
     );
   };
 
@@ -123,7 +124,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                       <span className="sr-only">More info</span>
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80 p-3">
+                  <PopoverContent className="w-80 p-3 z-[200]">
                     <div className="space-y-2">
                       <div className="space-y-1">
                         <h4 className="font-medium text-sm">Overview</h4>
@@ -131,7 +132,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                       </div>
                       {notes && (
                         <div className="space-y-1">
-                          <h4 className="font-medium text-sm">Note</h4>
+                          <h4 className="font-medium text-sm">Overview</h4>
                           <p className="text-sm text-muted-foreground">{notes}</p>
                         </div>
                       )}
@@ -175,12 +176,12 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
             <h4 className="text-sm font-medium mb-3">Requirements</h4>
             <ul className="space-y-3">
               {deliverables.map((item, index) => {
-                // Skip the first entry which is the main section header (e.g. "1 Testing Framework")
-                if (index === 0) return null;
+                // Skip the main section header lines (x.0) as they're redundant
+                if (item.match(/^\d+\.0/) && index === 0) return null;
                 
                 return (
                   <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item)}`}>
-                    {getNumberBadge(item)}
+                    {renderNumberBadge(item)}
                   </li>
                 );
               })}
