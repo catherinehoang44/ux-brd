@@ -49,6 +49,7 @@ const Index = () => {
             onSubscribe={handleSubscribe}
             isSubscribed={isSubscribed}
             exclusions={exclusions}
+            hideExclusions={true}
           />
         </div>
       </div>

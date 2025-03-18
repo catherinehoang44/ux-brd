@@ -26,6 +26,7 @@ interface ProposalListProps {
   onSubscribe?: (email: string) => void;
   isSubscribed?: boolean;
   exclusions?: string[];
+  hideExclusions?: boolean;
 }
 
 const formSchema = z.object({
@@ -41,7 +42,8 @@ const ProposalList: React.FC<ProposalListProps> = ({
   onToggleEmailBar,
   onSubscribe,
   isSubscribed = false,
-  exclusions = []
+  exclusions = [],
+  hideExclusions = false
 }) => {
   const [sortBy, setSortBy] = useState<'priority' | 'deadline'>('priority');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // desc = high to low
@@ -302,7 +304,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
       </div>
       
       {/* Exclusions Section */}
-      <ExclusionsSection exclusions={exclusions} />
+      <ExclusionsSection exclusions={exclusions} hidden={hideExclusions} />
       
       {/* Email Update Bar */}
       {isEmailBarVisible && (

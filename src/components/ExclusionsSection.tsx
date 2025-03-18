@@ -3,10 +3,11 @@ import React from 'react';
 
 interface ExclusionsSectionProps {
   exclusions?: string[];
+  hidden?: boolean;
 }
 
-const ExclusionsSection: React.FC<ExclusionsSectionProps> = ({ exclusions = [] }) => {
-  if (!exclusions || exclusions.length === 0) return null;
+const ExclusionsSection: React.FC<ExclusionsSectionProps> = ({ exclusions = [], hidden = false }) => {
+  if (hidden || !exclusions || exclusions.length === 0) return null;
   
   return (
     <div className="mt-12 pt-6 border-t border-border">
