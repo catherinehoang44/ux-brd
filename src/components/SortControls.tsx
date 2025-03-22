@@ -9,12 +9,14 @@ interface SortControlsProps {
   sortBy: 'priority' | 'deadline';
   sortDirection: 'asc' | 'desc';
   onSortChange: (type: 'priority' | 'deadline') => void;
+  dialogTriggerRef?: React.RefObject<HTMLButtonElement>;
 }
 
 const SortControls: React.FC<SortControlsProps> = ({ 
   sortBy,
   sortDirection,
-  onSortChange
+  onSortChange,
+  dialogTriggerRef
 }) => {
   return (
     <div className="flex items-center gap-4">
@@ -41,7 +43,13 @@ const SortControls: React.FC<SortControlsProps> = ({
       </div>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">Request Update</Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            ref={dialogTriggerRef}
+          >
+            Request Update
+          </Button>
         </DialogTrigger>
       </Dialog>
     </div>
