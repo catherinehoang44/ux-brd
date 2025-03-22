@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -52,7 +52,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uxRequirements, setUxRequirements] = useState<any[]>([]);
-  const dialogTriggerRef = useRef<HTMLButtonElement>(null);
   
   // Form setup
   const form = useForm<z.infer<typeof formSchema>>({
@@ -64,7 +63,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
     },
   });
 
-  // Icons for each section
+  // Icons for each section - all in gray
   const logoComponents = {
     testing: <div className="text-gray-500"><ClipboardList size={24} /></div>,
     design: <div className="text-gray-500"><FileText size={24} /></div>,
@@ -111,7 +110,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 currentTopic = content.topic;
                 deliverables.push(currentTopic);
               } else if (content.bulletPoint) {
-                deliverables.push(`   ${content.bulletPoint}`);
+                deliverables.push(content.bulletPoint);
               }
             });
             
@@ -185,12 +184,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
     form.reset();
   };
 
-  const handleRequestUpdate = () => {
-    if (dialogTriggerRef.current) {
-      dialogTriggerRef.current.click();
-    }
-  };
-
   // Sort the requirements based on the selected sort type and direction
   const sortedRequirements = [...uxRequirements].sort((a, b) => {
     if (sortBy === 'priority') {
@@ -233,8 +226,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
         <SortControls 
           sortBy={sortBy} 
           sortDirection={sortDirection} 
-          onSortChange={handleSort}
-          dialogTriggerRef={dialogTriggerRef}
+          onSortChange={handleSort} 
         />
       </div>
       
@@ -292,7 +284,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
         />
       )}
 
-      {/* Dialog content for the Request Update dialog */}
+      {/* Dialog content for the Request Update dialog (used by the button in SortControls) */}
       <Dialog>
         <DialogContent>
           <DialogHeader>

@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckSquare } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { trackDocumentApproval, getSheetData } from '@/services/googleSheetService';
 
 interface HeaderProps {
   title: string;
@@ -20,45 +19,19 @@ const Header: React.FC<HeaderProps> = ({
   onApproval
 }) => {
   const [isApproved, setIsApproved] = useState(false);
-  const [documentVersion, setDocumentVersion] = useState("FY25Q2");
-  const [lastUpdated, setLastUpdated] = useState("March 17, 2025");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  useEffect(() => {
-    const fetchLastUpdated = async () => {
-      try {
-        const data = await getSheetData();
-        setLastUpdated(data.lastUpdated);
-      } catch (error) {
-        console.error("Failed to fetch last updated date:", error);
-      }
-    };
-    
-    fetchLastUpdated();
-  }, []);
-  
-  const handleApproval = async () => {
+  const handleApproval = () => {
     const newApprovalState = !isApproved;
-    setIsSubmitting(true);
+    setIsApproved(newApprovalState);
     
-    try {
-      await trackDocumentApproval(newApprovalState, documentVersion);
-      setIsApproved(newApprovalState);
-      
-      if (onApproval) {
-        onApproval(newApprovalState);
-      }
-      
-      if (newApprovalState) {
-        toast.success("Document approved successfully!");
-      } else {
-        toast.info("Approval removed");
-      }
-    } catch (error) {
-      toast.error("Failed to record approval. Please try again.");
-      console.error("Approval tracking error:", error);
-    } finally {
-      setIsSubmitting(false);
+    if (onApproval) {
+      onApproval(newApprovalState);
+    }
+    
+    if (newApprovalState) {
+      toast.success("Document approved successfully!");
+    } else {
+      toast.info("Approval removed");
     }
   };
   
@@ -68,18 +41,16 @@ const Header: React.FC<HeaderProps> = ({
         <span className="text-sm text-muted-foreground mb-1">Adobe Certification Portal</span>
         <h1 className="text-3xl font-light tracking-tight">{title}</h1>
         <div className="flex items-center gap-3 mt-1">
-          <Select 
-            defaultValue={documentVersion}
-            onValueChange={setDocumentVersion}
-          >
+          <Select defaultValue="FY25Q2">
             <SelectTrigger className="h-7 text-xs w-[120px] border-0 bg-transparent p-0 hover:bg-transparent focus:ring-0">
               <SelectValue placeholder="FY25 Q2" />
             </SelectTrigger>
             <SelectContent>
+              {/* Only one option as requested */}
               <SelectItem value="FY25Q2">FY25 Q2</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-sm text-muted-foreground">Last updated: {lastUpdated}</p>
+          <p className="text-sm text-muted-foreground">Last updated: March 17, 2025</p>
         </div>
       </div>
       <div className="flex items-center gap-3">
@@ -96,10 +67,9 @@ const Header: React.FC<HeaderProps> = ({
               : "border border-border bg-white hover:bg-secondary dark:bg-background dark:hover:bg-secondary"
           }`}
           onClick={handleApproval}
-          disabled={isSubmitting}
         >
           <CheckSquare className={`mr-2 h-4 w-4 transition-all duration-300 ${isApproved ? 'scale-110' : ''}`} />
-          {isSubmitting ? "Processing..." : isApproved ? "Remove Approval" : price}
+          {isApproved ? "Remove Approval" : price}
         </Button>
       </div>
     </div>

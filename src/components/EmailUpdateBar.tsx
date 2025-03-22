@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
-import { addEmailUpdate } from '@/services/googleSheetService';
 
 interface EmailUpdateBarProps {
   onSubscribe?: (email: string) => void;
@@ -17,24 +16,14 @@ const EmailUpdateBar: React.FC<EmailUpdateBarProps> = ({
 }) => {
   const [updateEmail, setUpdateEmail] = useState('');
   const [emailBarHovered, setEmailBarHovered] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleDocUpdates = async (e: React.FormEvent) => {
+  const handleDocUpdates = (e: React.FormEvent) => {
     e.preventDefault();
     if (updateEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      setIsSubmitting(true);
-      try {
-        await addEmailUpdate(updateEmail);
-        toast.success("You've been subscribed to document updates.");
-        setUpdateEmail('');
-        if (onSubscribe) {
-          onSubscribe(updateEmail);
-        }
-      } catch (error) {
-        toast.error("Failed to subscribe. Please try again later.");
-        console.error("Email subscription error:", error);
-      } finally {
-        setIsSubmitting(false);
+      toast.success("You've been subscribed to document updates.");
+      setUpdateEmail('');
+      if (onSubscribe) {
+        onSubscribe(updateEmail);
       }
     } else {
       toast.error("Please enter a valid email address.");
@@ -60,16 +49,9 @@ const EmailUpdateBar: React.FC<EmailUpdateBarProps> = ({
           value={updateEmail}
           onChange={(e) => setUpdateEmail(e.target.value)}
           className="bg-transparent border-gray-200/20 dark:border-gray-700/20 text-sm flex-1"
-          disabled={isSubmitting}
         />
-        <Button 
-          type="submit" 
-          variant="outline" 
-          size="sm" 
-          className="text-xs"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Subscribing..." : "Get Updates"}
+        <Button type="submit" variant="outline" size="sm" className="text-xs">
+          Get Updates
         </Button>
       </form>
     </div>

@@ -25,24 +25,11 @@ interface QuickLink {
   link: string;
 }
 
-interface EmailUpdate {
-  email: string;
-  type: string;
-}
-
-interface DocumentApproval {
-  type: string;
-  documentVersion: string;
-}
-
 interface SheetData {
   requirementDropdowns: RequirementDropdown[];
   requirementContents: RequirementContent[];
   signOffStakeholders: SignOffStakeholder[];
   quickLinks: QuickLink[];
-  emailUpdates: EmailUpdate[];
-  documentApprovals: DocumentApproval[];
-  lastUpdated: string;
 }
 
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEkwZQNs2I4eWnLlwXMp7oR7y9-CdxlMMn4t2HeqCUfA9JdQnoOMroFJM2OqzPtiLIWTjki1f4TyJB/pub?output=csv";
@@ -96,22 +83,15 @@ export async function getSheetData(): Promise<SheetData> {
     const requirementContents: RequirementContent[] = [];
     const signOffStakeholders: SignOffStakeholder[] = [];
     const quickLinks: QuickLink[] = [];
-    const emailUpdates: EmailUpdate[] = [];
-    const documentApprovals: DocumentApproval[] = [];
     
-    // Extract headers row
-    const headers = parsedCSV[0];
-    
-    // Process data from CSV
-    // First row is headers, so start from the second row
-    for (let i = 1; i < parsedCSV.length; i++) {
-      const row = parsedCSV[i];
-      
-      // Skip empty rows
-      if (row.length < 2 || !row[0] || !row[1]) continue;
-      
-      // Check which table we're in based on headers
-      if (headers[0] === 'Display?' && headers[1] === 'Requirement Title') {
+    // Process row by row directly without trying to identify sheet names
+    // The first row contains headers, so we start from the second row
+    if (parsedCSV.length > 1) {
+      // Process Requirements Dropdown data (first section in the CSV)
+      for (let i = 1; i < parsedCSV.length; i++) {
+        const row = parsedCSV[i];
+        if (row.length < 2 || !row[0] || !row[1]) break;
+        
         requirementDropdowns.push({
           display: row[0].toLowerCase() === "true",
           title: row[1],
@@ -120,94 +100,19 @@ export async function getSheetData(): Promise<SheetData> {
           reviewBy: row[4] || "",
           note: row[5] || ""
         });
-      } else if (headers[0] === 'Requirement Title' && headers[1] === 'Requirement Topic') {
-        requirementContents.push({
-          title: row[0],
-          topic: row[1] || "",
-          bulletPoint: row[2] || ""
-        });
-      } else if (headers[0] === 'Requirement Title' && headers[1] === 'Sign-Off Stakeholder') {
-        signOffStakeholders.push({
-          title: row[0],
-          stakeholder: row[1] || ""
-        });
-      } else if (headers[0] === 'Requirement Title' && headers[1] === 'Link Text') {
-        quickLinks.push({
-          title: row[0],
-          linkText: row[1] || "",
-          link: row[2] || ""
-        });
-      } else if (headers[0] === 'Email' && headers[1] === 'Type') {
-        emailUpdates.push({
-          email: row[0],
-          type: row[1] || "Document Updates"
-        });
-      } else if (headers[0] === 'Type' && headers[1] === 'Document Version') {
-        documentApprovals.push({
-          type: row[0],
-          documentVersion: row[1] || "FY25 Q2"
-        });
       }
     }
     
-    // Generate last updated date
-    const lastUpdated = new Date().toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    console.log("Parsed requirements:", requirementDropdowns);
     
     return {
       requirementDropdowns,
       requirementContents,
       signOffStakeholders,
-      quickLinks,
-      emailUpdates,
-      documentApprovals,
-      lastUpdated
+      quickLinks
     };
   } catch (error) {
     console.error("Error processing Google Sheets data:", error);
-    throw error;
-  }
-}
-
-// Function to add email to Google Sheets
-export async function addEmailUpdate(email: string): Promise<void> {
-  try {
-    // In a real app, you would use Google Sheets API to update the sheet
-    // For now, we'll just log the email that would be added
-    console.log(`Adding email to Google Sheets: ${email}, Type: Document Updates`);
-    
-    // URL to a web service that would handle the update (you would need to set this up)
-    // const updateEndpoint = "https://example.com/api/update-sheet";
-    // await fetch(updateEndpoint, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email, type: 'Document Updates' })
-    // });
-  } catch (error) {
-    console.error("Error adding email to Google Sheets:", error);
-    throw error;
-  }
-}
-
-// Function to track document approvals
-export async function trackDocumentApproval(isApproved: boolean, version: string): Promise<void> {
-  try {
-    // In a real app, you would use Google Sheets API to update the sheet
-    const actionType = isApproved ? "Approval Given" : "Approval Removed";
-    console.log(`Tracking document approval: ${actionType}, Version: ${version}`);
-    
-    // URL to a web service that would handle the update (you would need to set this up)
-    // const updateEndpoint = "https://example.com/api/track-approval";
-    // await fetch(updateEndpoint, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ type: actionType, documentVersion: version })
-    // });
-  } catch (error) {
-    console.error("Error tracking document approval:", error);
     throw error;
   }
 }
