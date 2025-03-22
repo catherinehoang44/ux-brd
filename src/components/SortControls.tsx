@@ -114,11 +114,15 @@ const SortControls: React.FC<SortControlsProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {requirementItems.map(req => (
-                          <SelectItem key={req.id} value={req.id}>
-                            {req.company}
-                          </SelectItem>
-                        ))}
+                        {requirementItems && requirementItems.length > 0 ? (
+                          requirementItems.map(req => (
+                            <SelectItem key={req.id} value={req.id}>
+                              {req.company}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="general">General</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

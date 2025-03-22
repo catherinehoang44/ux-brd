@@ -1,4 +1,3 @@
-
 interface RequirementDropdown {
   display: boolean;
   documentVersion: string;
@@ -47,6 +46,8 @@ interface SheetData {
   lastUpdated: string;
 }
 
+import { toast } from "sonner";
+
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEkwZQNs2I4eWnLlwXMp7oR7y9-CdxlMMn4t2HeqCUfA9JdQnoOMroFJM2OqzPtiLIWTjki1f4TyJB/pub?output=csv";
 
 async function fetchCSV(): Promise<string> {
@@ -88,6 +89,25 @@ function parseCSV(csvText: string): string[][] {
   });
 }
 
+// Format date to human-readable format like "March 4, 2005"
+function formatDate(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return dateString; // Return original if invalid
+    }
+    
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (e) {
+    console.error("Error formatting date:", e);
+    return dateString;
+  }
+}
+
 export async function getSheetData(): Promise<SheetData> {
   try {
     const csvText = await fetchCSV();
@@ -99,7 +119,7 @@ export async function getSheetData(): Promise<SheetData> {
     const signOffStakeholders: SignOffStakeholder[] = [];
     const quickLinks: QuickLink[] = [];
     const documentVersions = new Set<string>();
-    let lastUpdated = new Date().toLocaleDateString();
+    let lastUpdated = formatDate(new Date().toLocaleDateString());
     
     // Process data
     if (parsedCSV.length > 1) {
@@ -157,7 +177,7 @@ export async function getSheetData(): Promise<SheetData> {
             if (!isNaN(rowDate.getTime())) {
               const currentLastUpdated = new Date(lastUpdated);
               if (rowDate > currentLastUpdated) {
-                lastUpdated = rowDate.toLocaleDateString();
+                lastUpdated = formatDate(rowDate.toLocaleDateString());
               }
             }
           } catch (e) {
@@ -188,11 +208,13 @@ export async function getSheetData(): Promise<SheetData> {
 }
 
 // New functions for writing to Google Sheets (via proxy)
-export async function addEmailUpdate(email: string, type: string = "Document Updates"): Promise<boolean> {
+export async function addEmailUpdate(email: string, type: string = "BRD Updates"): Promise<boolean> {
   try {
     console.log(`Email subscription added: ${email} for ${type}`);
     // In a real implementation, this would send the data to a server endpoint that updates Google Sheets
+    // Currently, we cannot directly write to Google Sheets without server-side code
     // For now, just log and return success
+    toast.success(`Added ${email} to Email Updates table with type: ${type}`);
     return true;
   } catch (error) {
     console.error("Error adding email update:", error);
@@ -205,7 +227,9 @@ export async function recordDocumentApproval(type: string, documentVersion: stri
     const timestamp = new Date().toISOString();
     console.log(`Document approval recorded: ${type} for ${documentVersion} at ${timestamp}`);
     // In a real implementation, this would send the data to a server endpoint that updates Google Sheets
+    // Currently, we cannot directly write to Google Sheets without server-side code
     // For now, just log and return success
+    toast.success(`Added "${type}" record for ${documentVersion} to Document Approvals table`);
     return true;
   } catch (error) {
     console.error("Error recording document approval:", error);

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CheckSquare } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { recordDocumentApproval } from '@/services/googleSheetService';
 
 interface HeaderProps {
   title: string;
@@ -27,19 +28,31 @@ const Header: React.FC<HeaderProps> = ({
   lastUpdated = 'March 17, 2025'
 }) => {
   const [isApproved, setIsApproved] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleApproval = () => {
+  const handleApproval = async () => {
+    setIsSubmitting(true);
     const newApprovalState = !isApproved;
-    setIsApproved(newApprovalState);
     
-    if (onApproval) {
-      onApproval(newApprovalState);
-    }
-    
-    if (newApprovalState) {
-      toast.success("Document approved successfully!");
-    } else {
-      toast.info("Approval removed");
+    try {
+      // Record the approval or removal in Google Sheets
+      const type = newApprovalState ? 'Approval Given' : 'Approval Removed';
+      const success = await recordDocumentApproval(type, selectedVersion);
+      
+      if (success) {
+        setIsApproved(newApprovalState);
+        
+        if (onApproval) {
+          onApproval(newApprovalState);
+        }
+      } else {
+        toast.error("Failed to record approval status. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error recording approval:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -84,9 +97,10 @@ const Header: React.FC<HeaderProps> = ({
               : "border border-border bg-white hover:bg-secondary dark:bg-background dark:hover:bg-secondary"
           }`}
           onClick={handleApproval}
+          disabled={isSubmitting}
         >
           <CheckSquare className={`mr-2 h-4 w-4 transition-all duration-300 ${isApproved ? 'scale-110' : ''}`} />
-          {isApproved ? "Remove Approval" : price}
+          {isSubmitting ? "Processing..." : (isApproved ? "Remove Approval" : price)}
         </Button>
       </div>
     </div>
