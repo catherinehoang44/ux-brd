@@ -1,10 +1,10 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { CheckCircle, Clock, AlarmClock, XCircle, FileText } from 'lucide-react';
+import { getSheetData } from '@/services/googleSheetService';
 
 interface Requirement {
   id: string;
@@ -22,29 +22,65 @@ interface DataVisualizerProps {
 const DataVisualizer: React.FC<DataVisualizerProps> = ({ className }) => {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Example requirements data
-  const requirements: Requirement[] = [
-    { id: 'UX-001', name: 'Maze Testing Implementation', status: 'completed', priority: 'high', lastUpdated: '2025-03-10', section: 'Testing' },
-    { id: 'UX-002', name: 'Usability Testing Protocol', status: 'in-progress', priority: 'critical', lastUpdated: '2025-03-15', section: 'Testing' },
-    { id: 'UX-003', name: 'A/B Testing Framework', status: 'planned', priority: 'medium', lastUpdated: '2025-03-05', section: 'Testing' },
-    { id: 'UX-004', name: 'User Behavior Metrics', status: 'in-progress', priority: 'critical', lastUpdated: '2025-03-12', section: 'Data' },
-    { id: 'UX-005', name: 'Certification Metrics', status: 'completed', priority: 'high', lastUpdated: '2025-03-08', section: 'Data' },
-    { id: 'UX-006', name: 'User Feedback Collection', status: 'blocked', priority: 'high', lastUpdated: '2025-03-01', section: 'Data' },
-    { id: 'UX-007', name: 'UX Design Approvals', status: 'in-progress', priority: 'medium', lastUpdated: '2025-03-14', section: 'Approval' },
-    { id: 'UX-008', name: 'UAT Requirements', status: 'planned', priority: 'high', lastUpdated: '2025-03-11', section: 'Quality' },
-    { id: 'UX-009', name: 'Design System Implementation', status: 'completed', priority: 'critical', lastUpdated: '2025-03-09', section: 'Design' },
-    { id: 'UX-010', name: 'Accessibility Requirements', status: 'in-progress', priority: 'critical', lastUpdated: '2025-03-16', section: 'Design' },
-    { id: 'UX-011', name: 'Performance Standards', status: 'planned', priority: 'medium', lastUpdated: '2025-03-07', section: 'Design' },
-    { id: 'UX-012', name: 'Validation Criteria', status: 'blocked', priority: 'high', lastUpdated: '2025-03-03', section: 'Quality' },
-  ];
-
-  // Filter requirements based on status
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const data = await getSheetData();
+        
+        const mappedRequirements = data.requirementDropdowns
+          .filter(item => item.display)
+          .map((item, index) => {
+            let status: 'completed' | 'in-progress' | 'planned' | 'blocked' = 'planned';
+            if (item.status.toLowerCase().includes('completed')) {
+              status = 'completed';
+            } else if (item.status.toLowerCase().includes('progress')) {
+              status = 'in-progress';
+            } else if (item.status.toLowerCase().includes('blocked')) {
+              status = 'blocked';
+            }
+            
+            let priority: 'critical' | 'high' | 'medium' | 'low' = 'medium';
+            if (item.status.toLowerCase().includes('critical')) {
+              priority = 'critical';
+            } else if (item.status.toLowerCase().includes('high')) {
+              priority = 'high';
+            } else if (item.status.toLowerCase().includes('medium')) {
+              priority = 'medium';
+            } else if (item.status.toLowerCase().includes('low')) {
+              priority = 'low';
+            }
+            
+            return {
+              id: `UX-${String(index + 1).padStart(3, '0')}`,
+              name: item.title,
+              status,
+              priority,
+              lastUpdated: item.reviewBy || new Date().toISOString().split('T')[0],
+              section: item.subtitle.split(' ')[0] || 'General'
+            };
+          });
+        
+        setRequirements(mappedRequirements);
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to load requirements:", err);
+        setError("Failed to load requirements data");
+        setLoading(false);
+      }
+    }
+    
+    loadData();
+  }, []);
+  
   const filteredRequirements = statusFilter === 'all' 
     ? requirements 
     : requirements.filter(req => req.status === statusFilter);
 
-  // Calculate status counts
   const statusCounts = {
     completed: requirements.filter(r => r.status === 'completed').length,
     inProgress: requirements.filter(r => r.status === 'in-progress').length,
@@ -143,7 +179,20 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({ className }) => {
       </div>
       
       <div className="p-4">
-        {view === 'grid' ? (
+        {loading ? (
+          <div className="py-10 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
+            <p>Loading requirements...</p>
+          </div>
+        ) : error ? (
+          <div className="py-10 text-center text-red-500">
+            <p>{error}</p>
+          </div>
+        ) : filteredRequirements.length === 0 ? (
+          <div className="py-10 text-center">
+            <p className="text-gray-500">No requirements available. Add some to the Google Sheet.</p>
+          </div>
+        ) : view === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {filteredRequirements.map((req) => (
               <div key={req.id} className="p-3 rounded-md border border-border bg-card hover:shadow-md transition-shadow">

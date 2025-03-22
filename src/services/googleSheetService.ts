@@ -84,68 +84,26 @@ export async function getSheetData(): Promise<SheetData> {
     const signOffStakeholders: SignOffStakeholder[] = [];
     const quickLinks: QuickLink[] = [];
     
-    let currentSheet = "";
-    
-    // Process each row
-    for (let i = 0; i < parsedCSV.length; i++) {
-      const row = parsedCSV[i];
-      
-      // Check if this is a sheet name row (typically has fewer cells)
-      if (row.length === 1 || (row.length === 2 && row[1] === "")) {
-        currentSheet = row[0].trim();
-        i++; // Skip the header row
-        continue;
-      }
-      
-      // Process data based on current sheet
-      switch (currentSheet) {
-        case "Requirements Dropdown":
-          // Skip header row
-          if (row[0] !== "Display?") {
-            requirementDropdowns.push({
-              display: row[0].toLowerCase() === "true",
-              title: row[1],
-              subtitle: row[2],
-              status: row[3],
-              reviewBy: row[4],
-              note: row[5]
-            });
-          }
-          break;
-          
-        case "Requirements Content":
-          // Skip header row
-          if (row[0] !== "Requirement Title") {
-            requirementContents.push({
-              title: row[0],
-              topic: row[1],
-              bulletPoint: row[2]
-            });
-          }
-          break;
-          
-        case "Sign-Off Stakeholders":
-          // Skip header row
-          if (row[0] !== "Requirement Title") {
-            signOffStakeholders.push({
-              title: row[0],
-              stakeholder: row[1]
-            });
-          }
-          break;
-          
-        case "Quick Links":
-          // Skip header row
-          if (row[0] !== "Requirement Title") {
-            quickLinks.push({
-              title: row[0],
-              linkText: row[1],
-              link: row[2]
-            });
-          }
-          break;
+    // Process row by row directly without trying to identify sheet names
+    // The first row contains headers, so we start from the second row
+    if (parsedCSV.length > 1) {
+      // Process Requirements Dropdown data (first section in the CSV)
+      for (let i = 1; i < parsedCSV.length; i++) {
+        const row = parsedCSV[i];
+        if (row.length < 2 || !row[0] || !row[1]) break;
+        
+        requirementDropdowns.push({
+          display: row[0].toLowerCase() === "true",
+          title: row[1],
+          subtitle: row[2] || "",
+          status: row[3] || "",
+          reviewBy: row[4] || "",
+          note: row[5] || ""
+        });
       }
     }
+    
+    console.log("Parsed requirements:", requirementDropdowns);
     
     return {
       requirementDropdowns,

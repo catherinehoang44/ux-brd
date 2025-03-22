@@ -7,10 +7,9 @@ export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check local storage for saved theme
     const savedTheme = localStorage.getItem('theme');
-    // Check for user preferred color scheme
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    return (savedTheme as Theme) || (prefersDark ? 'dark' : 'light');
+    // Default to light mode now instead of checking system preference
+    return (savedTheme as Theme) || 'light';
   });
 
   useEffect(() => {
