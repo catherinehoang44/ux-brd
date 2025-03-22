@@ -9,11 +9,13 @@ import { addEmailUpdate } from '@/services/googleSheetService';
 interface EmailUpdateBarProps {
   onSubscribe?: (email: string) => void;
   onToggleEmailBar?: () => void;
+  hidden?: boolean; // New prop to hide the component
 }
 
 const EmailUpdateBar: React.FC<EmailUpdateBarProps> = ({ 
   onSubscribe,
-  onToggleEmailBar
+  onToggleEmailBar,
+  hidden = true // Default to hidden
 }) => {
   const [updateEmail, setUpdateEmail] = useState('');
   const [emailBarHovered, setEmailBarHovered] = useState(false);
@@ -47,6 +49,11 @@ const EmailUpdateBar: React.FC<EmailUpdateBarProps> = ({
       toast.error("Please enter a valid email address.");
     }
   };
+
+  // Don't render if hidden
+  if (hidden) {
+    return null;
+  }
 
   return (
     <div 

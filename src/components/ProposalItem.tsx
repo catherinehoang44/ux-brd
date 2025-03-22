@@ -132,7 +132,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                       </div>
                       {notes && (
                         <div className="space-y-1">
-                          <h4 className="font-medium text-sm">Overview</h4>
+                          <h4 className="font-medium text-sm">Notes</h4>
                           <p className="text-sm text-muted-foreground">{notes}</p>
                         </div>
                       )}
@@ -175,16 +175,11 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
           <div>
             <h4 className="text-sm font-medium mb-3">Requirements</h4>
             <ul className="space-y-3">
-              {deliverables.map((item, index) => {
-                // Skip the main section header lines (x.0) as they're redundant
-                if (item.match(/^\d+\.0/) && index === 0) return null;
-                
-                return (
-                  <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item)}`}>
-                    {renderNumberBadge(item)}
-                  </li>
-                );
-              })}
+              {deliverables.map((item, index) => (
+                <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item)}`}>
+                  {renderNumberBadge(item)}
+                </li>
+              ))}
             </ul>
           </div>
         )}
@@ -217,6 +212,8 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                   <li key={index}>
                     <a
                       href={resource.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-sm text-primary hover:underline flex items-center gap-1"
                     >
                       • {resource.name}

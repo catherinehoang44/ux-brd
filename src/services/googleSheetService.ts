@@ -1,3 +1,4 @@
+
 interface RequirementDropdown {
   display: boolean;
   documentVersion: string;
@@ -123,20 +124,21 @@ export async function getSheetData(): Promise<SheetData> {
     
     // Process data
     if (parsedCSV.length > 1) {
-      // Process Requirements Dropdown data
+      // First row is headers, so start from index 1
       for (let i = 1; i < parsedCSV.length; i++) {
         const row = parsedCSV[i];
-        if (row.length < 5 || !row[0]) break;
+        if (!row || row.length < 3) continue; // Skip empty rows
         
-        // Check if this is a requirements row (we're checking the Display? column)
-        if (row[0].toLowerCase() === "true" || row[0].toLowerCase() === "false") {
-          // Add to document versions set
+        const rowType = row[0].trim().toLowerCase();
+        
+        // Check if this is a requirements dropdown row
+        if (rowType === "true" || rowType === "false") {
           if (row[1]) {
             documentVersions.add(row[1]);
           }
           
           requirementDropdowns.push({
-            display: row[0].toLowerCase() === "true",
+            display: rowType === "true",
             documentVersion: row[1] || "",
             title: row[2] || "",
             key: row[3] || "",
@@ -145,9 +147,24 @@ export async function getSheetData(): Promise<SheetData> {
             reviewBy: row[6] || "",
             note: row[7] || ""
           });
-        }
+          
+          // Update last updated date if Review By is more recent
+          if (row[6]) {
+            try {
+              const rowDate = new Date(row[6]);
+              if (!isNaN(rowDate.getTime())) {
+                const currentLastUpdated = new Date(lastUpdated);
+                if (rowDate > currentLastUpdated) {
+                  lastUpdated = formatDate(row[6]);
+                }
+              }
+            } catch (e) {
+              // Skip invalid dates
+            }
+          }
+        } 
         // Check if this is a requirement content row
-        else if (row[0] && row[0].startsWith("content")) {
+        else if (rowType.startsWith("content")) {
           requirementContents.push({
             key: row[1] || "",
             topic: row[2] || "",
@@ -155,34 +172,19 @@ export async function getSheetData(): Promise<SheetData> {
           });
         }
         // Check if this is a stakeholder row
-        else if (row[0] && row[0].startsWith("stakeholder")) {
+        else if (rowType.startsWith("stakeholder")) {
           signOffStakeholders.push({
             key: row[1] || "",
             stakeholder: row[2] || ""
           });
         }
         // Check if this is a quick link row
-        else if (row[0] && row[0].startsWith("link")) {
+        else if (rowType.startsWith("link")) {
           quickLinks.push({
             key: row[1] || "",
             linkText: row[2] || "",
             link: row[3] || ""
           });
-        }
-        
-        // Update last updated date if Review By is more recent
-        if (row[6]) {
-          try {
-            const rowDate = new Date(row[6]);
-            if (!isNaN(rowDate.getTime())) {
-              const currentLastUpdated = new Date(lastUpdated);
-              if (rowDate > currentLastUpdated) {
-                lastUpdated = formatDate(rowDate.toLocaleDateString());
-              }
-            }
-          } catch (e) {
-            // Skip invalid dates
-          }
         }
       }
     }

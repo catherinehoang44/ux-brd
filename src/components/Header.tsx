@@ -15,6 +15,7 @@ interface HeaderProps {
   selectedVersion?: string;
   onVersionChange?: (version: string) => void;
   lastUpdated?: string;
+  hideApprovalButton?: boolean; // New prop to hide the approval button
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -25,7 +26,8 @@ const Header: React.FC<HeaderProps> = ({
   documentVersions = ['FY25 Q2'],
   selectedVersion = 'FY25 Q2',
   onVersionChange,
-  lastUpdated = 'March 17, 2025'
+  lastUpdated = 'March 17, 2025',
+  hideApprovalButton = true // Default to hidden
 }) => {
   const [isApproved, setIsApproved] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,19 +91,21 @@ const Header: React.FC<HeaderProps> = ({
             {approvalCount} Approvals
           </div>
         )}
-        <Button 
-          variant={isApproved ? "default" : "outline"}
-          className={`rounded-full px-6 py-2 transition-all duration-500 ${
-            isApproved 
-              ? "bg-green-500 hover:bg-green-600 text-white transform hover:scale-105" 
-              : "border border-border bg-white hover:bg-secondary dark:bg-background dark:hover:bg-secondary"
-          }`}
-          onClick={handleApproval}
-          disabled={isSubmitting}
-        >
-          <CheckSquare className={`mr-2 h-4 w-4 transition-all duration-300 ${isApproved ? 'scale-110' : ''}`} />
-          {isSubmitting ? "Processing..." : (isApproved ? "Remove Approval" : price)}
-        </Button>
+        {!hideApprovalButton && (
+          <Button 
+            variant={isApproved ? "default" : "outline"}
+            className={`rounded-full px-6 py-2 transition-all duration-500 ${
+              isApproved 
+                ? "bg-green-500 hover:bg-green-600 text-white transform hover:scale-105" 
+                : "border border-border bg-white hover:bg-secondary dark:bg-background dark:hover:bg-secondary"
+            }`}
+            onClick={handleApproval}
+            disabled={isSubmitting}
+          >
+            <CheckSquare className={`mr-2 h-4 w-4 transition-all duration-300 ${isApproved ? 'scale-110' : ''}`} />
+            {isSubmitting ? "Processing..." : (isApproved ? "Remove Approval" : price)}
+          </Button>
+        )}
       </div>
     </div>
   );

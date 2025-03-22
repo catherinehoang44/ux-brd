@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 const Index = () => {
   const [approvalCount, setApprovalCount] = useState(0);
-  const [isEmailBarVisible, setIsEmailBarVisible] = useState(true);
+  const [isEmailBarVisible, setIsEmailBarVisible] = useState(false); // Set to false to hide email bar
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [documentVersions, setDocumentVersions] = useState<string[]>(['FY25 Q2']);
   const [selectedVersion, setSelectedVersion] = useState<string>('FY25 Q2');
@@ -78,6 +78,7 @@ const Index = () => {
       selectedVersion={selectedVersion}
       onVersionChange={handleVersionChange}
       lastUpdated={lastUpdated}
+      hideApprovalButton={true} // Pass this new prop to hide the approval button
     >
       <div className="flex flex-col gap-12 pb-24">
         <div className="w-full max-w-4xl">

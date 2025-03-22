@@ -1,39 +1,37 @@
 
-import React from 'react';
-import Sidebar from './Sidebar';
+import React, { ReactNode } from 'react';
 import Header from './Header';
-import { cn } from '@/lib/utils';
-import { Toaster } from 'sonner';
+import Sidebar from './Sidebar';
 
 interface ProposalLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
   title: string;
   price?: string;
-  className?: string;
   approvalCount?: number;
   onApproval?: (isApproved: boolean) => void;
   documentVersions?: string[];
   selectedVersion?: string;
   onVersionChange?: (version: string) => void;
   lastUpdated?: string;
+  hideApprovalButton?: boolean; // New prop to hide the approval button
 }
 
 const ProposalLayout: React.FC<ProposalLayoutProps> = ({ 
   children, 
   title, 
-  price,
-  className,
-  approvalCount,
+  price, 
+  approvalCount, 
   onApproval,
   documentVersions,
   selectedVersion,
   onVersionChange,
-  lastUpdated
+  lastUpdated,
+  hideApprovalButton
 }) => {
   return (
-    <div className="h-screen flex overflow-hidden">
+    <div className="flex min-h-screen bg-gray-50/50 dark:bg-gray-900">
       <Sidebar />
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="flex-1 flex flex-col px-0 md:px-4 lg:px-8 max-w-full">
         <Header 
           title={title} 
           price={price} 
@@ -43,11 +41,11 @@ const ProposalLayout: React.FC<ProposalLayoutProps> = ({
           selectedVersion={selectedVersion}
           onVersionChange={onVersionChange}
           lastUpdated={lastUpdated}
+          hideApprovalButton={hideApprovalButton}
         />
-        <main className={cn("px-8 pb-12", className)}>
+        <main className="flex-1 pb-12 px-4 md:px-6">
           {children}
         </main>
-        <Toaster position="bottom-right" />
       </div>
     </div>
   );
