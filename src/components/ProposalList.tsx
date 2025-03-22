@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ClipboardList, FileText, CheckSquare, BarChart2, FileCheck, AlertCircle } from 'lucide-react';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
@@ -33,8 +32,8 @@ interface ProposalListProps {
 }
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  section: z.string().min(1, { message: "Please select a section" }),
+  name: z.string(),
+  section: z.string(),
   message: z.string().optional(),
 });
 
@@ -93,6 +92,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
         setError(null);
         
         const sheetData = await getSheetData();
+        console.log("Fetched sheet data:", sheetData);
         
         // Process the data into the format needed for ProposalItems
         const requirementsData = sheetData.requirementDropdowns
@@ -168,6 +168,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
             };
           });
         
+        console.log("Processed requirements data:", requirementsData);
         setUxRequirements(requirementsData);
         setLoading(false);
       } catch (error) {
@@ -194,7 +195,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
   const handleSubmitUpdate = (values: z.infer<typeof formSchema>) => {
     console.log(values);
     toast.success("Update request submitted successfully.");
-    form.reset();
   };
 
   const handleEmailSubscribe = async (values: z.infer<typeof emailSchema>) => {
@@ -220,8 +220,8 @@ const ProposalList: React.FC<ProposalListProps> = ({
       // Priority order: Critical > High > Medium > Low
       const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
       const priorityComparison = 
-        priorityOrder[a.location as keyof typeof priorityOrder] - 
-        priorityOrder[b.location as keyof typeof priorityOrder];
+        (priorityOrder[a.location as keyof typeof priorityOrder] ?? 999) - 
+        (priorityOrder[b.location as keyof typeof priorityOrder] ?? 999);
       
       // If same priority, sort alphabetically by company name
       if (priorityComparison === 0) {
@@ -257,6 +257,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
           sortBy={sortBy} 
           sortDirection={sortDirection} 
           onSortChange={handleSort} 
+          requirementItems={displayItems}
         />
       </div>
       
@@ -315,80 +316,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
           onToggleEmailBar={onToggleEmailBar}
         />
       )}
-
-      {/* Dialog content for the Request Update dialog */}
-      <Dialog>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Request Document Update</DialogTitle>
-            <DialogDescription>
-              Submit a change request for this UX Business Requirements Document.
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmitUpdate)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Your name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="section"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Document Section</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a section" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {uxRequirements.map(req => (
-                          <SelectItem key={req.id} value={req.id.toLowerCase().replace(/\s+/g, '-')}>
-                            {req.company}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="message"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Your Request</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Please describe the changes you'd like to request..."
-                        rows={4}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Be as specific as possible about the changes you're requesting.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full">Submit Request</Button>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

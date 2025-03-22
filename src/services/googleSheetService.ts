@@ -106,23 +106,49 @@ export async function getSheetData(): Promise<SheetData> {
       // Process Requirements Dropdown data
       for (let i = 1; i < parsedCSV.length; i++) {
         const row = parsedCSV[i];
-        if (row.length < 5 || !row[0] || !row[1] || !row[2]) break;
+        if (row.length < 5 || !row[0]) break;
         
-        // Add to document versions set
-        if (row[1]) {
-          documentVersions.add(row[1]);
+        // Check if this is a requirements row (we're checking the Display? column)
+        if (row[0].toLowerCase() === "true" || row[0].toLowerCase() === "false") {
+          // Add to document versions set
+          if (row[1]) {
+            documentVersions.add(row[1]);
+          }
+          
+          requirementDropdowns.push({
+            display: row[0].toLowerCase() === "true",
+            documentVersion: row[1] || "",
+            title: row[2] || "",
+            key: row[3] || "",
+            subtitle: row[4] || "",
+            status: row[5] || "",
+            reviewBy: row[6] || "",
+            note: row[7] || ""
+          });
         }
-        
-        requirementDropdowns.push({
-          display: row[0].toLowerCase() === "true",
-          documentVersion: row[1] || "",
-          title: row[2] || "",
-          key: row[3] || "",
-          subtitle: row[4] || "",
-          status: row[5] || "",
-          reviewBy: row[6] || "",
-          note: row[7] || ""
-        });
+        // Check if this is a requirement content row
+        else if (row[0] && row[0].startsWith("content")) {
+          requirementContents.push({
+            key: row[1] || "",
+            topic: row[2] || "",
+            bulletPoint: row[3] || ""
+          });
+        }
+        // Check if this is a stakeholder row
+        else if (row[0] && row[0].startsWith("stakeholder")) {
+          signOffStakeholders.push({
+            key: row[1] || "",
+            stakeholder: row[2] || ""
+          });
+        }
+        // Check if this is a quick link row
+        else if (row[0] && row[0].startsWith("link")) {
+          quickLinks.push({
+            key: row[1] || "",
+            linkText: row[2] || "",
+            link: row[3] || ""
+          });
+        }
         
         // Update last updated date if Review By is more recent
         if (row[6]) {
@@ -142,6 +168,9 @@ export async function getSheetData(): Promise<SheetData> {
     }
     
     console.log("Parsed requirements:", requirementDropdowns);
+    console.log("Parsed contents:", requirementContents);
+    console.log("Parsed stakeholders:", signOffStakeholders);
+    console.log("Parsed quick links:", quickLinks);
     console.log("Available document versions:", Array.from(documentVersions));
     
     return {
