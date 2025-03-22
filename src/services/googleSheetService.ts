@@ -1,7 +1,9 @@
 
 interface RequirementDropdown {
   display: boolean;
+  documentVersion: string;
   title: string;
+  key: string;
   subtitle: string;
   status: string;
   reviewBy: string;
@@ -9,20 +11,31 @@ interface RequirementDropdown {
 }
 
 interface RequirementContent {
-  title: string;
+  key: string;
   topic: string;
   bulletPoint: string;
 }
 
 interface SignOffStakeholder {
-  title: string;
+  key: string;
   stakeholder: string;
 }
 
 interface QuickLink {
-  title: string;
+  key: string;
   linkText: string;
   link: string;
+}
+
+interface EmailUpdate {
+  email: string;
+  type: string;
+}
+
+interface DocumentApproval {
+  type: string;
+  documentVersion: string;
+  timestamp: string;
 }
 
 interface SheetData {
@@ -30,6 +43,8 @@ interface SheetData {
   requirementContents: RequirementContent[];
   signOffStakeholders: SignOffStakeholder[];
   quickLinks: QuickLink[];
+  documentVersions: string[];
+  lastUpdated: string;
 }
 
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEkwZQNs2I4eWnLlwXMp7oR7y9-CdxlMMn4t2HeqCUfA9JdQnoOMroFJM2OqzPtiLIWTjki1f4TyJB/pub?output=csv";
@@ -83,36 +98,88 @@ export async function getSheetData(): Promise<SheetData> {
     const requirementContents: RequirementContent[] = [];
     const signOffStakeholders: SignOffStakeholder[] = [];
     const quickLinks: QuickLink[] = [];
+    const documentVersions = new Set<string>();
+    let lastUpdated = new Date().toLocaleDateString();
     
-    // Process row by row directly without trying to identify sheet names
-    // The first row contains headers, so we start from the second row
+    // Process data
     if (parsedCSV.length > 1) {
-      // Process Requirements Dropdown data (first section in the CSV)
+      // Process Requirements Dropdown data
       for (let i = 1; i < parsedCSV.length; i++) {
         const row = parsedCSV[i];
-        if (row.length < 2 || !row[0] || !row[1]) break;
+        if (row.length < 5 || !row[0] || !row[1] || !row[2]) break;
+        
+        // Add to document versions set
+        if (row[1]) {
+          documentVersions.add(row[1]);
+        }
         
         requirementDropdowns.push({
           display: row[0].toLowerCase() === "true",
-          title: row[1],
-          subtitle: row[2] || "",
-          status: row[3] || "",
-          reviewBy: row[4] || "",
-          note: row[5] || ""
+          documentVersion: row[1] || "",
+          title: row[2] || "",
+          key: row[3] || "",
+          subtitle: row[4] || "",
+          status: row[5] || "",
+          reviewBy: row[6] || "",
+          note: row[7] || ""
         });
+        
+        // Update last updated date if Review By is more recent
+        if (row[6]) {
+          try {
+            const rowDate = new Date(row[6]);
+            if (!isNaN(rowDate.getTime())) {
+              const currentLastUpdated = new Date(lastUpdated);
+              if (rowDate > currentLastUpdated) {
+                lastUpdated = rowDate.toLocaleDateString();
+              }
+            }
+          } catch (e) {
+            // Skip invalid dates
+          }
+        }
       }
     }
     
     console.log("Parsed requirements:", requirementDropdowns);
+    console.log("Available document versions:", Array.from(documentVersions));
     
     return {
       requirementDropdowns,
       requirementContents,
       signOffStakeholders,
-      quickLinks
+      quickLinks,
+      documentVersions: Array.from(documentVersions),
+      lastUpdated
     };
   } catch (error) {
     console.error("Error processing Google Sheets data:", error);
     throw error;
+  }
+}
+
+// New functions for writing to Google Sheets (via proxy)
+export async function addEmailUpdate(email: string, type: string = "Document Updates"): Promise<boolean> {
+  try {
+    console.log(`Email subscription added: ${email} for ${type}`);
+    // In a real implementation, this would send the data to a server endpoint that updates Google Sheets
+    // For now, just log and return success
+    return true;
+  } catch (error) {
+    console.error("Error adding email update:", error);
+    return false;
+  }
+}
+
+export async function recordDocumentApproval(type: string, documentVersion: string): Promise<boolean> {
+  try {
+    const timestamp = new Date().toISOString();
+    console.log(`Document approval recorded: ${type} for ${documentVersion} at ${timestamp}`);
+    // In a real implementation, this would send the data to a server endpoint that updates Google Sheets
+    // For now, just log and return success
+    return true;
+  } catch (error) {
+    console.error("Error recording document approval:", error);
+    return false;
   }
 }

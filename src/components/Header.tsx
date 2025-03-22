@@ -10,13 +10,21 @@ interface HeaderProps {
   price?: string;
   approvalCount?: number;
   onApproval?: (isApproved: boolean) => void;
+  documentVersions?: string[];
+  selectedVersion?: string;
+  onVersionChange?: (version: string) => void;
+  lastUpdated?: string;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
   title, 
   price = "Approve", 
   approvalCount = 0,
-  onApproval
+  onApproval,
+  documentVersions = ['FY25 Q2'],
+  selectedVersion = 'FY25 Q2',
+  onVersionChange,
+  lastUpdated = 'March 17, 2025'
 }) => {
   const [isApproved, setIsApproved] = useState(false);
   
@@ -35,22 +43,31 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
   
+  const handleVersionChange = (version: string) => {
+    if (onVersionChange) {
+      onVersionChange(version);
+    }
+  };
+  
   return (
     <div className="flex justify-between items-center py-6 px-8 w-full animate-fade-in">
       <div className="flex flex-col items-start">
         <span className="text-sm text-muted-foreground mb-1">Adobe Certification Portal</span>
         <h1 className="text-3xl font-light tracking-tight">{title}</h1>
         <div className="flex items-center gap-3 mt-1">
-          <Select defaultValue="FY25Q2">
+          <Select value={selectedVersion} onValueChange={handleVersionChange}>
             <SelectTrigger className="h-7 text-xs w-[120px] border-0 bg-transparent p-0 hover:bg-transparent focus:ring-0">
-              <SelectValue placeholder="FY25 Q2" />
+              <SelectValue placeholder={selectedVersion} />
             </SelectTrigger>
             <SelectContent>
-              {/* Only one option as requested */}
-              <SelectItem value="FY25Q2">FY25 Q2</SelectItem>
+              {documentVersions.map(version => (
+                <SelectItem key={version} value={version}>
+                  {version}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <p className="text-sm text-muted-foreground">Last updated: March 17, 2025</p>
+          <p className="text-sm text-muted-foreground">Last updated: {lastUpdated}</p>
         </div>
       </div>
       <div className="flex items-center gap-3">

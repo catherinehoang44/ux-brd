@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import EmailUpdateBar from './EmailUpdateBar';
 import ExclusionsSection from './ExclusionsSection';
 import SortControls from './SortControls';
-import { getSheetData } from '@/services/googleSheetService';
+import { getSheetData, addEmailUpdate } from '@/services/googleSheetService';
 
 interface ProposalListProps {
   className?: string;
@@ -29,12 +29,17 @@ interface ProposalListProps {
   isSubscribed?: boolean;
   exclusions?: string[];
   hideExclusions?: boolean;
+  selectedVersion?: string;
 }
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   section: z.string().min(1, { message: "Please select a section" }),
   message: z.string().optional(),
+});
+
+const emailSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
 });
 
 const ProposalList: React.FC<ProposalListProps> = ({ 
@@ -45,7 +50,8 @@ const ProposalList: React.FC<ProposalListProps> = ({
   onSubscribe,
   isSubscribed = false,
   exclusions = [],
-  hideExclusions = false
+  hideExclusions = false,
+  selectedVersion = 'FY25 Q2'
 }) => {
   const [sortBy, setSortBy] = useState<'priority' | 'deadline'>('priority');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // desc = high to low
@@ -63,6 +69,13 @@ const ProposalList: React.FC<ProposalListProps> = ({
     },
   });
 
+  const emailForm = useForm<z.infer<typeof emailSchema>>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
   // Icons for each section - all in gray
   const logoComponents = {
     testing: <div className="text-gray-500"><ClipboardList size={24} /></div>,
@@ -72,7 +85,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
     acceptance: <div className="text-gray-500"><FileCheck size={24} /></div>,
   };
 
-  // Load data from Google Sheets on component mount
+  // Load data from Google Sheets on component mount or when the selected version changes
   useEffect(() => {
     async function loadData() {
       try {
@@ -83,11 +96,11 @@ const ProposalList: React.FC<ProposalListProps> = ({
         
         // Process the data into the format needed for ProposalItems
         const requirementsData = sheetData.requirementDropdowns
-          .filter(item => item.display)
+          .filter(item => item.display && item.documentVersion === selectedVersion)
           .map(item => {
             // Find all content for this requirement
             const contents = sheetData.requirementContents
-              .filter(content => content.title === item.title)
+              .filter(content => content.key === item.key)
               .sort((a, b) => {
                 // Sort by numeric part of the topic/bulletPoint if possible
                 const getNumericPart = (str: string) => {
@@ -116,12 +129,12 @@ const ProposalList: React.FC<ProposalListProps> = ({
             
             // Get stakeholders for this requirement
             const stakeholders = sheetData.signOffStakeholders
-              .filter(stakeholder => stakeholder.title === item.title)
+              .filter(stakeholder => stakeholder.key === item.key)
               .map(stakeholder => stakeholder.stakeholder);
             
             // Get quick links for this requirement
             const resources = sheetData.quickLinks
-              .filter(link => link.title === item.title)
+              .filter(link => link.key === item.key)
               .map(link => ({
                 name: link.linkText,
                 url: link.link
@@ -140,7 +153,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
             }
             
             return {
-              id: item.title,
+              id: item.key,
               company: item.title,
               logo,
               role: item.subtitle,
@@ -165,7 +178,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
     }
     
     loadData();
-  }, []);
+  }, [selectedVersion]);
 
   const handleSort = (type: 'priority' | 'deadline') => {
     if (sortBy === type) {
@@ -182,6 +195,23 @@ const ProposalList: React.FC<ProposalListProps> = ({
     console.log(values);
     toast.success("Update request submitted successfully.");
     form.reset();
+  };
+
+  const handleEmailSubscribe = async (values: z.infer<typeof emailSchema>) => {
+    try {
+      const success = await addEmailUpdate(values.email);
+      if (success) {
+        toast.success("You're now subscribed for updates!");
+        emailForm.reset();
+        if (onSubscribe) {
+          onSubscribe(values.email);
+        }
+      } else {
+        toast.error("Failed to subscribe. Please try again.");
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again.");
+    }
   };
 
   // Sort the requirements based on the selected sort type and direction
@@ -267,7 +297,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
             ))
           ) : (
             <div className="py-10 text-center">
-              <p className="text-gray-500">No requirements available. Add some to the Google Sheet.</p>
+              <p className="text-gray-500">No requirements available for {selectedVersion}. Add some to the Google Sheet.</p>
             </div>
           )}
         </div>
@@ -279,12 +309,14 @@ const ProposalList: React.FC<ProposalListProps> = ({
       {/* Email Update Bar */}
       {isEmailBarVisible && (
         <EmailUpdateBar 
-          onSubscribe={onSubscribe}
+          onSubscribe={(email) => {
+            handleEmailSubscribe({ email });
+          }}
           onToggleEmailBar={onToggleEmailBar}
         />
       )}
 
-      {/* Dialog content for the Request Update dialog (used by the button in SortControls) */}
+      {/* Dialog content for the Request Update dialog */}
       <Dialog>
         <DialogContent>
           <DialogHeader>

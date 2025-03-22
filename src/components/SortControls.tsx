@@ -41,7 +41,9 @@ const SortControls: React.FC<SortControlsProps> = ({
       </div>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">Request Update</Button>
+          <Button variant="outline" size="sm">
+            Request Update
+          </Button>
         </DialogTrigger>
       </Dialog>
     </div>
