@@ -78,7 +78,7 @@ const Index = () => {
       selectedVersion={selectedVersion}
       onVersionChange={handleVersionChange}
       lastUpdated={lastUpdated}
-      hideApprovalButton={true} // Pass this new prop to hide the approval button
+      hideApprovalButton={true} // Hide the approval button
     >
       <div className="flex flex-col gap-12 pb-24">
         <div className="w-full max-w-4xl">
@@ -88,7 +88,7 @@ const Index = () => {
             The ACP serves as the primary platform for users to discover, register for, complete, and manage their Adobe DX product certifications.
           </p>
           <ProposalList 
-            isEmailBarVisible={isEmailBarVisible} 
+            isEmailBarVisible={false} // Hide the email update bar
             onToggleEmailBar={handleToggleEmailBar}
             onSubscribe={handleSubscribe}
             isSubscribed={isSubscribed}

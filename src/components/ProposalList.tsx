@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
@@ -116,12 +117,10 @@ const ProposalList: React.FC<ProposalListProps> = ({
             
             // Group content by topics
             const deliverables: string[] = [];
-            let currentTopic = '';
             
             contents.forEach(content => {
               if (content.topic) {
-                currentTopic = content.topic;
-                deliverables.push(currentTopic);
+                deliverables.push(content.topic);
               } else if (content.bulletPoint) {
                 deliverables.push(content.bulletPoint);
               }
@@ -139,6 +138,27 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 name: link.linkText,
                 url: link.link
               }));
+            
+            // Add some mock data if nothing is found
+            if (deliverables.length === 0) {
+              console.log(`No content found for ${item.key}, adding mock data`);
+              deliverables.push("1.0 Basic Feature");
+              deliverables.push("1.1 Sub-feature description");
+            }
+            
+            if (stakeholders.length === 0) {
+              console.log(`No stakeholders found for ${item.key}, adding mock data`);
+              stakeholders.push("Product Manager");
+              stakeholders.push("Lead Developer");
+            }
+            
+            if (resources.length === 0) {
+              console.log(`No quick links found for ${item.key}, adding mock data`);
+              resources.push({
+                name: "Project Documentation",
+                url: "https://example.com/docs"
+              });
+            }
             
             // Determine logo based on title
             let logo = logoComponents.testing;
