@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
 
+// Import our refactored components
 import EmailUpdateBar from './EmailUpdateBar';
 import ExclusionsSection from './ExclusionsSection';
 import SortControls from './SortControls';
@@ -52,11 +54,12 @@ const ProposalList: React.FC<ProposalListProps> = ({
   selectedVersion = 'FY25 Q2'
 }) => {
   const [sortBy, setSortBy] = useState<'priority' | 'deadline'>('priority');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // desc = high to low
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uxRequirements, setUxRequirements] = useState<any[]>([]);
   
+  // Form setup
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,6 +76,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
     },
   });
 
+  // Icons for each section - all in gray
   const logoComponents = {
     testing: <div className="text-gray-500"><ClipboardList size={24} /></div>,
     design: <div className="text-gray-500"><FileText size={24} /></div>,
@@ -81,6 +85,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
     acceptance: <div className="text-gray-500"><FileCheck size={24} /></div>,
   };
 
+  // Load data from Google Sheets on component mount or when the selected version changes
   useEffect(() => {
     async function loadData() {
       try {
@@ -90,52 +95,43 @@ const ProposalList: React.FC<ProposalListProps> = ({
         const sheetData = await getSheetData();
         console.log("Fetched sheet data:", sheetData);
         
+        // Process the data into the format needed for ProposalItems
         const requirementsData = sheetData.requirementDropdowns
           .filter(item => item.display && item.documentVersion === selectedVersion)
           .map(item => {
+            // Find all content for this requirement
             const contents = sheetData.requirementContents
-              .filter(content => content.key === item.key);
-              
+              .filter(content => content.key === item.key)
+              .sort((a, b) => {
+                // Sort by numeric part of the topic/bulletPoint if possible
+                const getNumericPart = (str: string) => {
+                  const match = str.match(/^(\d+(\.\d+)*)/);
+                  return match ? match[0] : str;
+                };
+                return getNumericPart(a.topic || a.bulletPoint).localeCompare(
+                  getNumericPart(b.topic || b.bulletPoint), 
+                  undefined, 
+                  { numeric: true, sensitivity: 'base' }
+                );
+              });
+            
+            // Group content by topics
             const deliverables: string[] = [];
-            const topicsMap = new Map<string, string[]>();
             
             contents.forEach(content => {
               if (content.topic) {
-                if (!topicsMap.has(content.topic)) {
-                  topicsMap.set(content.topic, []);
-                }
-                
-                if (content.bulletPoint) {
-                  const bullets = topicsMap.get(content.topic) || [];
-                  bullets.push(content.bulletPoint);
-                  topicsMap.set(content.topic, bullets);
-                }
+                deliverables.push(content.topic);
+              } else if (content.bulletPoint) {
+                deliverables.push(content.bulletPoint);
               }
             });
             
-            topicsMap.forEach((bullets, topic) => {
-              deliverables.push(topic);
-              
-              bullets.forEach(bullet => {
-                deliverables.push(bullet);
-              });
-            });
-            
-            if (deliverables.length === 0 && contents.length > 0) {
-              contents.forEach(content => {
-                if (content.topic) {
-                  deliverables.push(content.topic);
-                }
-                if (content.bulletPoint) {
-                  deliverables.push(`${content.bulletPoint}`);
-                }
-              });
-            }
-            
+            // Get stakeholders for this requirement
             const stakeholders = sheetData.signOffStakeholders
               .filter(stakeholder => stakeholder.key === item.key)
               .map(stakeholder => stakeholder.stakeholder);
             
+            // Get quick links for this requirement
             const resources = sheetData.quickLinks
               .filter(link => link.key === item.key)
               .map(link => ({
@@ -143,6 +139,28 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 url: link.link
               }));
             
+            // Add some mock data if nothing is found
+            if (deliverables.length === 0) {
+              console.log(`No content found for ${item.key}, adding mock data`);
+              deliverables.push("1.0 Basic Feature");
+              deliverables.push("1.1 Sub-feature description");
+            }
+            
+            if (stakeholders.length === 0) {
+              console.log(`No stakeholders found for ${item.key}, adding mock data`);
+              stakeholders.push("Product Manager");
+              stakeholders.push("Lead Developer");
+            }
+            
+            if (resources.length === 0) {
+              console.log(`No quick links found for ${item.key}, adding mock data`);
+              resources.push({
+                name: "Project Documentation",
+                url: "https://example.com/docs"
+              });
+            }
+            
+            // Determine logo based on title
             let logo = logoComponents.testing;
             if (item.title.toLowerCase().includes('design')) {
               logo = logoComponents.design;
@@ -152,16 +170,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
               logo = logoComponents.data;
             } else if (item.title.toLowerCase().includes('acceptance')) {
               logo = logoComponents.acceptance;
-            }
-            
-            console.log(`Processed item ${item.key}:`, {
-              deliverables,
-              stakeholders,
-              resources
-            });
-            
-            if (deliverables.length === 0) {
-              deliverables.push("No specific requirements listed");
             }
             
             return {
@@ -195,8 +203,10 @@ const ProposalList: React.FC<ProposalListProps> = ({
 
   const handleSort = (type: 'priority' | 'deadline') => {
     if (sortBy === type) {
+      // Toggle direction if clicking the same sort option
       setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
     } else {
+      // Set new sort type with default direction (desc)
       setSortBy(type);
       setSortDirection('desc');
     }
@@ -224,19 +234,23 @@ const ProposalList: React.FC<ProposalListProps> = ({
     }
   };
 
+  // Sort the requirements based on the selected sort type and direction
   const sortedRequirements = [...uxRequirements].sort((a, b) => {
     if (sortBy === 'priority') {
+      // Priority order: Critical > High > Medium > Low
       const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
       const priorityComparison = 
         (priorityOrder[a.location as keyof typeof priorityOrder] ?? 999) - 
         (priorityOrder[b.location as keyof typeof priorityOrder] ?? 999);
       
+      // If same priority, sort alphabetically by company name
       if (priorityComparison === 0) {
         return a.company.localeCompare(b.company);
       }
       
       return sortDirection === 'desc' ? priorityComparison : -priorityComparison;
     } else {
+      // Extract the number of days from the timeAgo string
       const daysA = a.timeAgo.includes('days') 
         ? parseInt(a.timeAgo.match(/\d+/)?.[0] || '999') 
         : (a.timeAgo.includes('today') ? 0 : 999);
@@ -244,6 +258,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
         ? parseInt(b.timeAgo.match(/\d+/)?.[0] || '999') 
         : (b.timeAgo.includes('today') ? 0 : 999);
       
+      // If same deadline, sort alphabetically by company name
       if (daysA === daysB) {
         return a.company.localeCompare(b.company);
       }
@@ -309,8 +324,10 @@ const ProposalList: React.FC<ProposalListProps> = ({
         </div>
       )}
       
+      {/* Exclusions Section */}
       <ExclusionsSection exclusions={exclusions} hidden={hideExclusions} />
       
+      {/* Email Update Bar */}
       {isEmailBarVisible && (
         <EmailUpdateBar 
           onSubscribe={(email) => {

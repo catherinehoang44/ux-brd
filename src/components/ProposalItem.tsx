@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
@@ -48,6 +49,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
+  // Function to get priority color
   const getPriorityColor = (priority?: string) => {
     if (!priority) return "bg-gray-200 text-gray-700";
     
@@ -65,36 +67,38 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
     }
   };
 
-  const getIndentClass = (deliverable: string, index: number, allDeliverables: string[]) => {
-    if (allDeliverables.length <= 1) return "";
+  const getIndentClass = (deliverable: string) => {
+    if (!deliverable) return "";
     
-    if (index === 0 || 
-        (index > 0 && allDeliverables[index-1].trim().endsWith(':')) ||
-        /^\d+\./.test(deliverable.trim()) ||
-        deliverable.length < 30 && !deliverable.includes('.')) {
-      return "";
+    // Check if it's a main section (e.g., "1.0 Something")
+    if (deliverable.match(/^\d+\.0/)) return "";
+    
+    // Check how many dots are in the numbering
+    const dotCount = (deliverable.match(/\./g) || []).length;
+    
+    switch (dotCount) {
+      case 1: return "ml-6"; // First level indent for x.y
+      case 2: return "ml-12"; // Second level indent for x.y.z
+      default: return ""; // No indent for main sections
     }
-    
-    return "ml-6";
   };
 
-  const renderDeliverableItem = (deliverable: string, index: number, allDeliverables: string[]) => {
-    const isMainTopic = getIndentClass(deliverable, index, allDeliverables) === "";
+  const renderNumberBadge = (deliverable: string) => {
+    // Extract the number part from the deliverable
+    const match = deliverable.match(/^(\d+\.\d+(?:\.\d+)?)/);
+    if (!match) return deliverable;
     
-    if (isMainTopic) {
-      return (
-        <div className="flex items-start gap-2 font-medium">
-          {deliverable}
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex items-start gap-2">
-          <span className="text-gray-400">•</span>
-          <span>{deliverable}</span>
-        </div>
-      );
-    }
+    const sectionId = match[1];
+    const restOfText = deliverable.substring(match[0].length).trim();
+    
+    return (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center justify-center min-w-6 h-6 bg-gray-800 text-white text-xs font-medium rounded-md px-1.5">
+          {sectionId}
+        </span>
+        <span>{restOfText}</span>
+      </div>
+    );
   };
 
   return (
@@ -172,11 +176,8 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
             <h4 className="text-sm font-medium mb-3">Requirements</h4>
             <ul className="space-y-3">
               {deliverables.map((item, index) => (
-                <li 
-                  key={index} 
-                  className={`text-sm text-muted-foreground ${getIndentClass(item, index, deliverables)}`}
-                >
-                  {renderDeliverableItem(item, index, deliverables)}
+                <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item)}`}>
+                  {renderNumberBadge(item)}
                 </li>
               ))}
             </ul>

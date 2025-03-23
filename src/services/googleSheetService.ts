@@ -122,12 +122,9 @@ export async function getSheetData(): Promise<SheetData> {
     const documentVersions = new Set<string>();
     let lastUpdated = formatDate(new Date().toLocaleDateString());
     
-    // Process data based on header row
+    // Process data - Manually define what we're looking for in each row type
     if (parsedCSV.length > 1) {
-      // Get header row to identify columns
-      const headerRow = parsedCSV[0].map(header => header.trim().toLowerCase());
-      
-      // Process each data row
+      // First row is headers, so start from index 1
       for (let i = 1; i < parsedCSV.length; i++) {
         const row = parsedCSV[i];
         if (!row || row.length < 3) continue; // Skip empty rows
@@ -141,14 +138,11 @@ export async function getSheetData(): Promise<SheetData> {
             documentVersions.add(row[1]);
           }
           
-          // Generate a key format for matching related content
-          const key = `${row[1]} ${row[2]}`;
-          
           const dropdown: RequirementDropdown = {
             display: rowType === "true",
             documentVersion: row[1] || "",
             title: row[2] || "",
-            key: key, // Key for matching with other tables
+            key: row[1] + " " + row[2], // Generate key from version + title
             subtitle: row[4] || "",
             status: row[5] || "",
             reviewBy: row[6] || "",
@@ -172,26 +166,25 @@ export async function getSheetData(): Promise<SheetData> {
             }
           }
         } 
-        // Requirement Content (determined by presence of "content" in first column)
-        else if (rowType.includes("content")) {
-          // Create content entry with key matching the dropdown
+        // Requirement Content (row starts with "content")
+        else if (rowType.startsWith("content")) {
           requirementContents.push({
-            key: row[1] || "", // This should match the key in dropdown
+            key: row[1] || "",
             topic: row[2] || "",
             bulletPoint: row[3] || ""
           });
         }
-        // Stakeholder (determined by presence of "stakeholder" in first column)
-        else if (rowType.includes("stakeholder")) {
+        // Stakeholder (row starts with "stakeholder")
+        else if (rowType.startsWith("stakeholder")) {
           signOffStakeholders.push({
-            key: row[1] || "", // This should match the key in dropdown
+            key: row[1] || "",
             stakeholder: row[2] || ""
           });
         }
-        // Quick Link (determined by presence of "link" in first column)
-        else if (rowType.includes("link")) {
+        // Quick Link (row starts with "link")
+        else if (rowType.startsWith("link")) {
           quickLinks.push({
-            key: row[1] || "", // This should match the key in dropdown
+            key: row[1] || "",
             linkText: row[2] || "",
             link: row[3] || ""
           });
