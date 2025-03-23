@@ -13,7 +13,7 @@ interface ProposalLayoutProps {
   selectedVersion?: string;
   onVersionChange?: (version: string) => void;
   lastUpdated?: string;
-  hideApprovalButton?: boolean; // Prop to hide the approval button
+  hideApprovalButton?: boolean; // New prop to hide the approval button
 }
 
 const ProposalLayout: React.FC<ProposalLayoutProps> = ({ 
@@ -26,7 +26,7 @@ const ProposalLayout: React.FC<ProposalLayoutProps> = ({
   selectedVersion,
   onVersionChange,
   lastUpdated,
-  hideApprovalButton = false // Default is to show the button
+  hideApprovalButton
 }) => {
   return (
     <div className="flex min-h-screen bg-gray-50/50 dark:bg-gray-900">

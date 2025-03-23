@@ -122,34 +122,31 @@ export async function getSheetData(): Promise<SheetData> {
     const documentVersions = new Set<string>();
     let lastUpdated = formatDate(new Date().toLocaleDateString());
     
-    // Process data - Manually define what we're looking for in each row type
+    // Process data
     if (parsedCSV.length > 1) {
       // First row is headers, so start from index 1
       for (let i = 1; i < parsedCSV.length; i++) {
         const row = parsedCSV[i];
         if (!row || row.length < 3) continue; // Skip empty rows
         
-        // Check what type of row this is based on the first column
-        const rowType = (row[0] || "").trim().toLowerCase();
+        const rowType = row[0].trim().toLowerCase();
         
-        // Requirements Dropdown (row starts with TRUE/FALSE)
+        // Check if this is a requirements dropdown row
         if (rowType === "true" || rowType === "false") {
           if (row[1]) {
             documentVersions.add(row[1]);
           }
           
-          const dropdown: RequirementDropdown = {
+          requirementDropdowns.push({
             display: rowType === "true",
             documentVersion: row[1] || "",
             title: row[2] || "",
-            key: row[1] + " " + row[2], // Generate key from version + title
+            key: row[3] || "",
             subtitle: row[4] || "",
             status: row[5] || "",
             reviewBy: row[6] || "",
             note: row[7] || ""
-          };
-          
-          requirementDropdowns.push(dropdown);
+          });
           
           // Update last updated date if Review By is more recent
           if (row[6]) {
@@ -166,7 +163,7 @@ export async function getSheetData(): Promise<SheetData> {
             }
           }
         } 
-        // Requirement Content (row starts with "content")
+        // Check if this is a requirement content row
         else if (rowType.startsWith("content")) {
           requirementContents.push({
             key: row[1] || "",
@@ -174,14 +171,14 @@ export async function getSheetData(): Promise<SheetData> {
             bulletPoint: row[3] || ""
           });
         }
-        // Stakeholder (row starts with "stakeholder")
+        // Check if this is a stakeholder row
         else if (rowType.startsWith("stakeholder")) {
           signOffStakeholders.push({
             key: row[1] || "",
             stakeholder: row[2] || ""
           });
         }
-        // Quick Link (row starts with "link")
+        // Check if this is a quick link row
         else if (rowType.startsWith("link")) {
           quickLinks.push({
             key: row[1] || "",
