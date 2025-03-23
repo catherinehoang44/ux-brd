@@ -73,8 +73,8 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
     const dotCount = (deliverable.match(/\./g) || []).length;
     
     switch (dotCount) {
-      case 1: return "ml-6"; // First level indent for x.y
-      case 2: return "ml-12"; // Second level indent for x.y.z
+      case 1: return "ml-3"; // Reduced first level indent for x.y
+      case 2: return "ml-6"; // Reduced second level indent for x.y.z
       default: return ""; // No indent for main sections
     }
   };
@@ -90,7 +90,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
       
       return (
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center min-w-6 h-6 bg-gray-800 text-white text-xs font-medium rounded-md px-1.5">
+          <span className="inline-flex items-center justify-center min-w-6 h-6 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium rounded-md px-1.5">
             {firstPart}
           </span>
           <span>{restOfText}</span>

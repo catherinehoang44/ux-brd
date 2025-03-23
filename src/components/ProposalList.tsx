@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
@@ -18,6 +17,7 @@ import SortControls from './SortControls';
 import ExclusionsSection from './ExclusionsSection';
 import EmailUpdateBar from './EmailUpdateBar';
 import { getSheetData, addEmailUpdate } from '@/services/googleSheetService';
+import { format, isValid } from 'date-fns';
 
 interface ProposalListProps {
   className?: string;
@@ -82,6 +82,24 @@ const ProposalList: React.FC<ProposalListProps> = ({
     acceptance: <div className="text-gray-500"><FileCheck size={24} /></div>,
   };
 
+  const formatReviewDate = (dateString: string): string => {
+    let dateValue: Date;
+    
+    if (!isNaN(Number(dateString))) {
+      const excelEpoch = new Date(1899, 11, 30);
+      dateValue = new Date(excelEpoch);
+      dateValue.setDate(excelEpoch.getDate() + Number(dateString));
+    } else {
+      dateValue = new Date(dateString);
+    }
+    
+    if (isValid(dateValue)) {
+      return `Review by ${format(dateValue, 'MMMM d, yyyy')}`;
+    }
+    
+    return `Review ${dateString}`;
+  };
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -94,7 +112,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
         const requirementsData = sheetData.requirementDropdowns
           .filter(item => item.display && item.documentVersion === selectedVersion)
           .map(item => {
-            // First, get all content for this requirement
             const contents = sheetData.requirementContents
               .filter(content => content.key === item.key)
               .sort((a, b) => {
@@ -108,35 +125,29 @@ const ProposalList: React.FC<ProposalListProps> = ({
                   { numeric: true, sensitivity: 'base' }
                 );
               });
-
-            // Create formatted deliverables with proper numbering
+            
             let sectionCounter = 1;
             let subSectionCounter = 0;
             const deliverables: string[] = [];
             
-            // Group contents by topic
             const topicMap = new Map();
             
             contents.forEach(content => {
               if (content.topic && content.topic.trim() !== '') {
-                // This is a main topic
                 topicMap.set(content.topic, []);
               }
               
               if (content.bulletPoint && content.bulletPoint.trim() !== '' && content.topic) {
-                // This is a bullet point that belongs to a topic
                 const bullets = topicMap.get(content.topic) || [];
                 bullets.push(content.bulletPoint);
                 topicMap.set(content.topic, bullets);
               }
             });
             
-            // Format the topics and bullet points with proper numbering
             for (const [topic, bullets] of topicMap.entries()) {
               const topicNumber = `${sectionCounter}.0`;
               deliverables.push(`${topicNumber} ${topic}`);
               
-              // Add bullet points for this topic
               bullets.forEach((bullet: string, idx: number) => {
                 const bulletNumber = `${sectionCounter}.${idx + 1}`;
                 deliverables.push(`${bulletNumber} ${bullet}`);
@@ -173,7 +184,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
               logo,
               role: item.subtitle,
               location: item.status,
-              timeAgo: `Review ${item.reviewBy}`,
+              timeAgo: formatReviewDate(item.reviewBy),
               description: item.subtitle,
               deliverables,
               notes: item.note,
