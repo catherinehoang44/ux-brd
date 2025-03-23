@@ -13,7 +13,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
 
-// Import our refactored components
 import EmailUpdateBar from './EmailUpdateBar';
 import ExclusionsSection from './ExclusionsSection';
 import SortControls from './SortControls';
@@ -53,12 +52,11 @@ const ProposalList: React.FC<ProposalListProps> = ({
   selectedVersion = 'FY25 Q2'
 }) => {
   const [sortBy, setSortBy] = useState<'priority' | 'deadline'>('priority');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // desc = high to low
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uxRequirements, setUxRequirements] = useState<any[]>([]);
   
-  // Form setup
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -75,7 +73,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
     },
   });
 
-  // Icons for each section - all in gray
   const logoComponents = {
     testing: <div className="text-gray-500"><ClipboardList size={24} /></div>,
     design: <div className="text-gray-500"><FileText size={24} /></div>,
@@ -84,7 +81,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
     acceptance: <div className="text-gray-500"><FileCheck size={24} /></div>,
   };
 
-  // Load data from Google Sheets on component mount or when the selected version changes
   useEffect(() => {
     async function loadData() {
       try {
@@ -94,65 +90,52 @@ const ProposalList: React.FC<ProposalListProps> = ({
         const sheetData = await getSheetData();
         console.log("Fetched sheet data:", sheetData);
         
-        // Process the data into the format needed for ProposalItems
         const requirementsData = sheetData.requirementDropdowns
           .filter(item => item.display && item.documentVersion === selectedVersion)
           .map(item => {
-            // Find all content for this requirement
             const contents = sheetData.requirementContents
               .filter(content => content.key === item.key);
               
-            // Group content by topics - organize into main bullets and sub-bullets
-            const mainTopics = new Map<string, string[]>();
-            
-            // First pass: identify all main topics 
-            contents.forEach(content => {
-              if (content.topic && !content.bulletPoint) {
-                mainTopics.set(content.topic, []);
-              }
-            });
-            
-            // Second pass: add bullet points to their topics
-            contents.forEach(content => {
-              if (content.bulletPoint && content.topic && mainTopics.has(content.topic)) {
-                const bullets = mainTopics.get(content.topic) || [];
-                bullets.push(content.bulletPoint);
-                mainTopics.set(content.topic, bullets);
-              }
-            });
-            
-            // Create the deliverables array with proper formatting
             const deliverables: string[] = [];
+            const topicsMap = new Map<string, string[]>();
             
-            // Add main topics and their bullets
-            mainTopics.forEach((bullets, topic) => {
-              // Add the main topic
+            contents.forEach(content => {
+              if (content.topic) {
+                if (!topicsMap.has(content.topic)) {
+                  topicsMap.set(content.topic, []);
+                }
+                
+                if (content.bulletPoint) {
+                  const bullets = topicsMap.get(content.topic) || [];
+                  bullets.push(content.bulletPoint);
+                  topicsMap.set(content.topic, bullets);
+                }
+              }
+            });
+            
+            topicsMap.forEach((bullets, topic) => {
               deliverables.push(topic);
               
-              // Add the sub-bullets for this topic
               bullets.forEach(bullet => {
-                deliverables.push(`${bullet}`);
+                deliverables.push(bullet);
               });
             });
             
-            // If no structured content was found, simply add all content as flat list
-            if (deliverables.length === 0) {
+            if (deliverables.length === 0 && contents.length > 0) {
               contents.forEach(content => {
                 if (content.topic) {
                   deliverables.push(content.topic);
                 }
                 if (content.bulletPoint) {
-                  deliverables.push(content.bulletPoint);
+                  deliverables.push(`${content.bulletPoint}`);
                 }
               });
             }
             
-            // Get stakeholders for this requirement
             const stakeholders = sheetData.signOffStakeholders
               .filter(stakeholder => stakeholder.key === item.key)
               .map(stakeholder => stakeholder.stakeholder);
             
-            // Get quick links for this requirement
             const resources = sheetData.quickLinks
               .filter(link => link.key === item.key)
               .map(link => ({
@@ -160,7 +143,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 url: link.link
               }));
             
-            // Determine logo based on title
             let logo = logoComponents.testing;
             if (item.title.toLowerCase().includes('design')) {
               logo = logoComponents.design;
@@ -177,6 +159,10 @@ const ProposalList: React.FC<ProposalListProps> = ({
               stakeholders,
               resources
             });
+            
+            if (deliverables.length === 0) {
+              deliverables.push("No specific requirements listed");
+            }
             
             return {
               id: item.key,
@@ -209,10 +195,8 @@ const ProposalList: React.FC<ProposalListProps> = ({
 
   const handleSort = (type: 'priority' | 'deadline') => {
     if (sortBy === type) {
-      // Toggle direction if clicking the same sort option
       setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
     } else {
-      // Set new sort type with default direction (desc)
       setSortBy(type);
       setSortDirection('desc');
     }
@@ -240,23 +224,19 @@ const ProposalList: React.FC<ProposalListProps> = ({
     }
   };
 
-  // Sort the requirements based on the selected sort type and direction
   const sortedRequirements = [...uxRequirements].sort((a, b) => {
     if (sortBy === 'priority') {
-      // Priority order: Critical > High > Medium > Low
       const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
       const priorityComparison = 
         (priorityOrder[a.location as keyof typeof priorityOrder] ?? 999) - 
         (priorityOrder[b.location as keyof typeof priorityOrder] ?? 999);
       
-      // If same priority, sort alphabetically by company name
       if (priorityComparison === 0) {
         return a.company.localeCompare(b.company);
       }
       
       return sortDirection === 'desc' ? priorityComparison : -priorityComparison;
     } else {
-      // Extract the number of days from the timeAgo string
       const daysA = a.timeAgo.includes('days') 
         ? parseInt(a.timeAgo.match(/\d+/)?.[0] || '999') 
         : (a.timeAgo.includes('today') ? 0 : 999);
@@ -264,7 +244,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
         ? parseInt(b.timeAgo.match(/\d+/)?.[0] || '999') 
         : (b.timeAgo.includes('today') ? 0 : 999);
       
-      // If same deadline, sort alphabetically by company name
       if (daysA === daysB) {
         return a.company.localeCompare(b.company);
       }
@@ -330,10 +309,8 @@ const ProposalList: React.FC<ProposalListProps> = ({
         </div>
       )}
       
-      {/* Exclusions Section */}
       <ExclusionsSection exclusions={exclusions} hidden={hideExclusions} />
       
-      {/* Email Update Bar */}
       {isEmailBarVisible && (
         <EmailUpdateBar 
           onSubscribe={(email) => {

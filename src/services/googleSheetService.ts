@@ -141,7 +141,7 @@ export async function getSheetData(): Promise<SheetData> {
             documentVersions.add(row[1]);
           }
           
-          // Generate a consistent key format for matching related content
+          // Generate a key format for matching related content
           const key = `${row[1]} ${row[2]}`;
           
           const dropdown: RequirementDropdown = {
@@ -172,7 +172,7 @@ export async function getSheetData(): Promise<SheetData> {
             }
           }
         } 
-        // Requirement Content (determined by key "content" in first column)
+        // Requirement Content (determined by presence of "content" in first column)
         else if (rowType.includes("content")) {
           // Create content entry with key matching the dropdown
           requirementContents.push({
@@ -181,14 +181,14 @@ export async function getSheetData(): Promise<SheetData> {
             bulletPoint: row[3] || ""
           });
         }
-        // Stakeholder (determined by key "stakeholder" in first column)
+        // Stakeholder (determined by presence of "stakeholder" in first column)
         else if (rowType.includes("stakeholder")) {
           signOffStakeholders.push({
             key: row[1] || "", // This should match the key in dropdown
             stakeholder: row[2] || ""
           });
         }
-        // Quick Link (determined by key "link" in first column)
+        // Quick Link (determined by presence of "link" in first column)
         else if (rowType.includes("link")) {
           quickLinks.push({
             key: row[1] || "", // This should match the key in dropdown
