@@ -2,8 +2,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
-import { ChevronDown, Info, Clock, Users, Link, ExternalLink, MessageSquare } from 'lucide-react';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { ChevronDown, Clock, Users, Link, ExternalLink, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Resource {
@@ -117,28 +116,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-medium">{company}</h3>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="inline-flex items-center justify-center size-5 text-muted-foreground rounded-full hover:bg-muted">
-                      <Info className="h-3.5 w-3.5" />
-                      <span className="sr-only">More info</span>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 p-3 z-[200]">
-                    <div className="space-y-2">
-                      <div className="space-y-1">
-                        <h4 className="font-medium text-sm">Overview</h4>
-                        <p className="text-sm text-muted-foreground">{description}</p>
-                      </div>
-                      {notes && (
-                        <div className="space-y-1">
-                          <h4 className="font-medium text-sm">Notes</h4>
-                          <p className="text-sm text-muted-foreground">{notes}</p>
-                        </div>
-                      )}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                {/* Info icon removed as requested */}
               </div>
               <p className="text-muted-foreground text-sm">{role}</p>
               {additionalInfo && (
