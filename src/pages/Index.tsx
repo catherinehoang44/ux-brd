@@ -12,12 +12,16 @@ const Index = () => {
   const [documentVersions, setDocumentVersions] = useState<string[]>(['FY25 Q2']);
   const [selectedVersion, setSelectedVersion] = useState<string>('FY25 Q2');
   const [lastUpdated, setLastUpdated] = useState<string>('March 17, 2025');
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     // Fetch available document versions
     const fetchVersions = async () => {
       try {
+        setIsLoading(true);
         const data = await getSheetData();
+        console.log("Retrieved sheet data:", data);
+        
         if (data.documentVersions && data.documentVersions.length > 0) {
           setDocumentVersions(data.documentVersions);
           setSelectedVersion(data.documentVersions[0]);
@@ -27,6 +31,9 @@ const Index = () => {
         }
       } catch (error) {
         console.error('Error fetching document versions:', error);
+        toast.error('Failed to load document data');
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -78,7 +85,7 @@ const Index = () => {
       selectedVersion={selectedVersion}
       onVersionChange={handleVersionChange}
       lastUpdated={lastUpdated}
-      hideApprovalButton={true} // Pass this new prop to hide the approval button
+      hideApprovalButton={true} // Keep approval button hidden
     >
       <div className="flex flex-col gap-12 pb-24">
         <div className="w-full max-w-4xl">
@@ -87,15 +94,22 @@ const Index = () => {
             This document outlines the comprehensive UX business requirements for the Adobe Certification Portal (ACP). 
             The ACP serves as the primary platform for users to discover, register for, complete, and manage their Adobe DX product certifications.
           </p>
-          <ProposalList 
-            isEmailBarVisible={isEmailBarVisible} 
-            onToggleEmailBar={handleToggleEmailBar}
-            onSubscribe={handleSubscribe}
-            isSubscribed={isSubscribed}
-            exclusions={exclusions}
-            hideExclusions={true}
-            selectedVersion={selectedVersion}
-          />
+          {isLoading ? (
+            <div className="py-20 text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
+              <p className="text-gray-500">Loading requirements data from Excel...</p>
+            </div>
+          ) : (
+            <ProposalList 
+              isEmailBarVisible={isEmailBarVisible} 
+              onToggleEmailBar={handleToggleEmailBar}
+              onSubscribe={handleSubscribe}
+              isSubscribed={isSubscribed}
+              exclusions={exclusions}
+              hideExclusions={true}
+              selectedVersion={selectedVersion}
+            />
+          )}
         </div>
       </div>
     </ProposalLayout>

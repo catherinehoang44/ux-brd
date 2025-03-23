@@ -48,46 +48,23 @@ interface SheetData {
 }
 
 import { toast } from "sonner";
+import * as XLSX from 'xlsx';
 
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEkwZQNs2I4eWnLlwXMp7oR7y9-CdxlMMn4t2HeqCUfA9JdQnoOMroFJM2OqzPtiLIWTjki1f4TyJB/pub?output=csv";
+// Updated URL to fetch XLSX instead of CSV
+const XLSX_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEkwZQNs2I4eWnLlwXMp7oR7y9-CdxlMMn4t2HeqCUfA9JdQnoOMroFJM2OqzPtiLIWTjki1f4TyJB/pub?output=xlsx";
 
-async function fetchCSV(): Promise<string> {
+async function fetchXLSX(): Promise<ArrayBuffer> {
   try {
-    const response = await fetch(CSV_URL);
+    console.log("Fetching XLSX file from:", XLSX_URL);
+    const response = await fetch(XLSX_URL);
     if (!response.ok) {
-      throw new Error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch XLSX: ${response.status} ${response.statusText}`);
     }
-    return await response.text();
+    return await response.arrayBuffer();
   } catch (error) {
-    console.error("Error fetching Google Sheets CSV:", error);
+    console.error("Error fetching Google Sheets XLSX:", error);
     throw error;
   }
-}
-
-function parseCSV(csvText: string): string[][] {
-  const lines = csvText.split('\n');
-  return lines.map(line => {
-    // Handle quoted fields properly (they might contain commas)
-    const result = [];
-    let currentField = "";
-    let inQuotes = false;
-    
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        result.push(currentField);
-        currentField = "";
-      } else {
-        currentField += char;
-      }
-    }
-    
-    result.push(currentField);
-    return result;
-  });
 }
 
 // Format date to human-readable format like "March 4, 2005"
@@ -111,8 +88,8 @@ function formatDate(dateString: string): string {
 
 export async function getSheetData(): Promise<SheetData> {
   try {
-    const csvText = await fetchCSV();
-    const parsedCSV = parseCSV(csvText);
+    const arrayBuffer = await fetchXLSX();
+    const workbook = XLSX.read(arrayBuffer, {type: 'array'});
     
     // Initialize data structures
     const requirementDropdowns: RequirementDropdown[] = [];
@@ -122,70 +99,104 @@ export async function getSheetData(): Promise<SheetData> {
     const documentVersions = new Set<string>();
     let lastUpdated = formatDate(new Date().toLocaleDateString());
     
-    // Process data
-    if (parsedCSV.length > 1) {
-      // First row is headers, so start from index 1
-      for (let i = 1; i < parsedCSV.length; i++) {
-        const row = parsedCSV[i];
-        if (!row || row.length < 3) continue; // Skip empty rows
+    // Log all available sheet names
+    console.log("Available sheets:", workbook.SheetNames);
+    
+    // Process Requirements Dropdown sheet
+    if (workbook.SheetNames.includes('Requirements Dropdown')) {
+      const dropdownSheet = workbook.Sheets['Requirements Dropdown'];
+      const dropdownData = XLSX.utils.sheet_to_json<any>(dropdownSheet, {header: 1});
+      
+      // Skip header row
+      for (let i = 1; i < dropdownData.length; i++) {
+        const row = dropdownData[i];
+        if (!row || row.length < 3) continue;
         
-        const rowType = row[0].trim().toLowerCase();
+        const display = String(row[0]).toLowerCase() === 'true';
+        const documentVersion = String(row[1] || '');
         
-        // Check if this is a requirements dropdown row
-        if (rowType === "true" || rowType === "false") {
-          if (row[1]) {
-            documentVersions.add(row[1]);
-          }
-          
-          requirementDropdowns.push({
-            display: rowType === "true",
-            documentVersion: row[1] || "",
-            title: row[2] || "",
-            key: row[3] || "",
-            subtitle: row[4] || "",
-            status: row[5] || "",
-            reviewBy: row[6] || "",
-            note: row[7] || ""
-          });
-          
-          // Update last updated date if Review By is more recent
-          if (row[6]) {
-            try {
-              const rowDate = new Date(row[6]);
-              if (!isNaN(rowDate.getTime())) {
-                const currentLastUpdated = new Date(lastUpdated);
-                if (rowDate > currentLastUpdated) {
-                  lastUpdated = formatDate(row[6]);
-                }
+        if (documentVersion) {
+          documentVersions.add(documentVersion);
+        }
+        
+        requirementDropdowns.push({
+          display,
+          documentVersion,
+          title: String(row[2] || ''),
+          key: String(row[3] || ''),
+          subtitle: String(row[4] || ''),
+          status: String(row[5] || ''),
+          reviewBy: String(row[6] || ''),
+          note: String(row[7] || '')
+        });
+        
+        // Update last updated date if Review By is more recent
+        if (row[6]) {
+          try {
+            const rowDate = new Date(row[6]);
+            if (!isNaN(rowDate.getTime())) {
+              const currentLastUpdated = new Date(lastUpdated);
+              if (rowDate > currentLastUpdated) {
+                lastUpdated = formatDate(String(row[6]));
               }
-            } catch (e) {
-              // Skip invalid dates
             }
+          } catch (e) {
+            // Skip invalid dates
           }
-        } 
-        // Check if this is a requirement content row
-        else if (rowType.startsWith("content")) {
-          requirementContents.push({
-            key: row[1] || "",
-            topic: row[2] || "",
-            bulletPoint: row[3] || ""
-          });
         }
-        // Check if this is a stakeholder row
-        else if (rowType.startsWith("stakeholder")) {
-          signOffStakeholders.push({
-            key: row[1] || "",
-            stakeholder: row[2] || ""
-          });
-        }
-        // Check if this is a quick link row
-        else if (rowType.startsWith("link")) {
-          quickLinks.push({
-            key: row[1] || "",
-            linkText: row[2] || "",
-            link: row[3] || ""
-          });
-        }
+      }
+    }
+    
+    // Process Requirements Content sheet
+    if (workbook.SheetNames.includes('Requirements Content')) {
+      const contentSheet = workbook.Sheets['Requirements Content'];
+      const contentData = XLSX.utils.sheet_to_json<any>(contentSheet, {header: 1});
+      
+      // Skip header row
+      for (let i = 1; i < contentData.length; i++) {
+        const row = contentData[i];
+        if (!row || row.length < 2) continue;
+        
+        requirementContents.push({
+          key: String(row[0] || ''),
+          topic: String(row[1] || ''),
+          bulletPoint: String(row[2] || '')
+        });
+      }
+    }
+    
+    // Process Sign-Off Stakeholders sheet
+    if (workbook.SheetNames.includes('Sign-Off Stakeholders')) {
+      const stakeholderSheet = workbook.Sheets['Sign-Off Stakeholders'];
+      const stakeholderData = XLSX.utils.sheet_to_json<any>(stakeholderSheet, {header: 1});
+      
+      // Skip header row
+      for (let i = 1; i < stakeholderData.length; i++) {
+        const row = stakeholderData[i];
+        if (!row || row.length < 2) continue;
+        
+        signOffStakeholders.push({
+          key: String(row[0] || ''),
+          stakeholder: String(row[1] || '')
+        });
+      }
+    }
+    
+    // Process Quick Links sheet
+    if (workbook.SheetNames.includes('Quick Links')) {
+      const linksSheet = workbook.Sheets['Quick Links'];
+      const linksData = XLSX.utils.sheet_to_json<any>(linksSheet, {header: 1});
+      
+      // Skip header row
+      for (let i = 1; i < linksData.length; i++) {
+        const row = linksData[i];
+        if (!row || row.length < 3) continue;
+        
+        quickLinks.push({
+          key: String(row[0] || ''),
+          linkText: String(row[1] || ''),
+          link: String(row[2] || '')
+        });
       }
     }
     
@@ -209,7 +220,7 @@ export async function getSheetData(): Promise<SheetData> {
   }
 }
 
-// New functions for writing to Google Sheets (via proxy)
+// Write to Google Sheets functions (via proxy)
 export async function addEmailUpdate(email: string, type: string = "BRD Updates"): Promise<boolean> {
   try {
     console.log(`Email subscription added: ${email} for ${type}`);
