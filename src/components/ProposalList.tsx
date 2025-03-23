@@ -12,12 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-
-// Import our refactored components
-import EmailUpdateBar from './EmailUpdateBar';
-import ExclusionsSection from './ExclusionsSection';
-import SortControls from './SortControls';
-import { getSheetData, addEmailUpdate } from '@/services/googleSheetService';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ProposalListProps {
   className?: string;
@@ -58,7 +53,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [uxRequirements, setUxRequirements] = useState<any[]>([]);
   
-  // Form setup
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -75,7 +69,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
     },
   });
 
-  // Icons for each section - all in gray
   const logoComponents = {
     testing: <div className="text-gray-500"><ClipboardList size={24} /></div>,
     design: <div className="text-gray-500"><FileText size={24} /></div>,
@@ -84,7 +77,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
     acceptance: <div className="text-gray-500"><FileCheck size={24} /></div>,
   };
 
-  // Load data from Google Sheets on component mount or when the selected version changes
   useEffect(() => {
     async function loadData() {
       try {
@@ -94,15 +86,12 @@ const ProposalList: React.FC<ProposalListProps> = ({
         const sheetData = await getSheetData();
         console.log("Fetched sheet data:", sheetData);
         
-        // Process the data into the format needed for ProposalItems
         const requirementsData = sheetData.requirementDropdowns
           .filter(item => item.display && item.documentVersion === selectedVersion)
           .map(item => {
-            // Find all content for this requirement
             const contents = sheetData.requirementContents
               .filter(content => content.key === item.key)
               .sort((a, b) => {
-                // Sort by numeric part of the topic/bulletPoint if possible
                 const getNumericPart = (str: string) => {
                   const match = str.match(/^(\d+(\.\d+)*)/);
                   return match ? match[0] : str;
@@ -113,26 +102,21 @@ const ProposalList: React.FC<ProposalListProps> = ({
                   { numeric: true, sensitivity: 'base' }
                 );
               });
-            
-            // Group content by topics
+
             const deliverables: string[] = [];
-            let currentTopic = '';
-            
             contents.forEach(content => {
-              if (content.topic) {
-                currentTopic = content.topic;
-                deliverables.push(currentTopic);
-              } else if (content.bulletPoint) {
+              if (content.topic && content.topic.trim() !== '') {
+                deliverables.push(content.topic);
+              }
+              if (content.bulletPoint && content.bulletPoint.trim() !== '') {
                 deliverables.push(content.bulletPoint);
               }
             });
             
-            // Get stakeholders for this requirement
             const stakeholders = sheetData.signOffStakeholders
               .filter(stakeholder => stakeholder.key === item.key)
               .map(stakeholder => stakeholder.stakeholder);
             
-            // Get quick links for this requirement
             const resources = sheetData.quickLinks
               .filter(link => link.key === item.key)
               .map(link => ({
@@ -140,7 +124,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 url: link.link
               }));
             
-            // Determine logo based on title
             let logo = logoComponents.testing;
             if (item.title.toLowerCase().includes('design')) {
               logo = logoComponents.design;
@@ -183,10 +166,8 @@ const ProposalList: React.FC<ProposalListProps> = ({
 
   const handleSort = (type: 'priority' | 'deadline') => {
     if (sortBy === type) {
-      // Toggle direction if clicking the same sort option
       setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
     } else {
-      // Set new sort type with default direction (desc)
       setSortBy(type);
       setSortDirection('desc');
     }
@@ -214,23 +195,19 @@ const ProposalList: React.FC<ProposalListProps> = ({
     }
   };
 
-  // Sort the requirements based on the selected sort type and direction
   const sortedRequirements = [...uxRequirements].sort((a, b) => {
     if (sortBy === 'priority') {
-      // Priority order: Critical > High > Medium > Low
       const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
       const priorityComparison = 
         (priorityOrder[a.location as keyof typeof priorityOrder] ?? 999) - 
         (priorityOrder[b.location as keyof typeof priorityOrder] ?? 999);
       
-      // If same priority, sort alphabetically by company name
       if (priorityComparison === 0) {
         return a.company.localeCompare(b.company);
       }
       
       return sortDirection === 'desc' ? priorityComparison : -priorityComparison;
     } else {
-      // Extract the number of days from the timeAgo string
       const daysA = a.timeAgo.includes('days') 
         ? parseInt(a.timeAgo.match(/\d+/)?.[0] || '999') 
         : (a.timeAgo.includes('today') ? 0 : 999);
@@ -238,7 +215,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
         ? parseInt(b.timeAgo.match(/\d+/)?.[0] || '999') 
         : (b.timeAgo.includes('today') ? 0 : 999);
       
-      // If same deadline, sort alphabetically by company name
       if (daysA === daysB) {
         return a.company.localeCompare(b.company);
       }
@@ -277,37 +253,37 @@ const ProposalList: React.FC<ProposalListProps> = ({
       )}
       
       {!loading && !error && (
-        <div className="space-y-8">
-          {displayItems.length > 0 ? (
-            displayItems.map((item) => (
-              <div key={item.id} className="mb-8 relative transition-all duration-300">
-                <ProposalItem
-                  company={item.company}
-                  logo={item.logo}
-                  role={item.role}
-                  location={item.location}
-                  timeAgo={item.timeAgo}
-                  description={item.description}
-                  deliverables={item.deliverables}
-                  notes={item.notes}
-                  stakeholders={item.stakeholders}
-                  resources={item.resources}
-                  overviewNote={item.overviewNote}
-                />
+        <ScrollArea className="h-[600px] w-full pr-4">
+          <div className="space-y-8">
+            {displayItems.length > 0 ? (
+              displayItems.map((item) => (
+                <div key={item.id} className="mb-8 relative transition-all duration-300">
+                  <ProposalItem
+                    company={item.company}
+                    logo={item.logo}
+                    role={item.role}
+                    location={item.location}
+                    timeAgo={item.timeAgo}
+                    description={item.description}
+                    deliverables={item.deliverables}
+                    notes={item.notes}
+                    stakeholders={item.stakeholders}
+                    resources={item.resources}
+                    overviewNote={item.overviewNote}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="py-10 text-center">
+                <p className="text-gray-500">No requirements available for {selectedVersion}. Add some to the Google Sheet.</p>
               </div>
-            ))
-          ) : (
-            <div className="py-10 text-center">
-              <p className="text-gray-500">No requirements available for {selectedVersion}. Add some to the Google Sheet.</p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </ScrollArea>
       )}
       
-      {/* Exclusions Section */}
       <ExclusionsSection exclusions={exclusions} hidden={hideExclusions} />
       
-      {/* Email Update Bar */}
       {isEmailBarVisible && (
         <EmailUpdateBar 
           onSubscribe={(email) => {

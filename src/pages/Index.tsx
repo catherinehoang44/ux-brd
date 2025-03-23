@@ -4,6 +4,7 @@ import ProposalLayout from '@/components/ProposalLayout';
 import ProposalList from '@/components/ProposalList';
 import { getSheetData, recordDocumentApproval } from '@/services/googleSheetService';
 import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const Index = () => {
   const [approvalCount, setApprovalCount] = useState(0);
