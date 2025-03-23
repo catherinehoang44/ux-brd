@@ -67,36 +67,62 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
     }
   };
 
-  const getIndentClass = (deliverable: string) => {
-    if (!deliverable) return "";
-    
-    // Check if it's a main section (e.g., "1.0 Something")
-    if (deliverable.match(/^\d+\.0/)) return "";
-    
-    // Check how many dots are in the numbering
-    const dotCount = (deliverable.match(/\./g) || []).length;
-    
-    switch (dotCount) {
-      case 1: return "ml-6"; // First level indent for x.y
-      case 2: return "ml-12"; // Second level indent for x.y.z
-      default: return ""; // No indent for main sections
+  const getIndentClass = (deliverable: string, index: number, allDeliverables: string[]) => {
+    // If this item starts with a number (like "1.0"), it's a main heading
+    if (/^\d+(\.\d+)*/.test(deliverable)) {
+      // Check dot count to determine level
+      const dotCount = (deliverable.match(/\./g) || []).length;
+      
+      switch (dotCount) {
+        case 0: return ""; // Main section
+        case 1: return "ml-6"; // First level indent for x.y
+        case 2: return "ml-12"; // Second level indent for x.y.z
+        default: return ""; // No indent for main sections
+      }
     }
+    
+    // Look at previous item to determine indentation
+    // If previous item was a topic (not a bulletpoint), this is a bulletpoint
+    if (index > 0) {
+      const prevItem = allDeliverables[index - 1];
+      
+      // If previous item seems like a topic heading, this should be indented
+      if (/^\d+(\.\d+)*/.test(prevItem)) {
+        return "ml-6"; // Standard indentation for sub-items
+      }
+      
+      // Sub-bullet for previous sub-bullet (further indentation)
+      return "ml-12";
+    }
+    
+    return "";
   };
 
-  const renderNumberBadge = (deliverable: string) => {
-    // Extract the number part from the deliverable
-    const match = deliverable.match(/^(\d+\.\d+(?:\.\d+)?)/);
-    if (!match) return deliverable;
+  const renderDeliverableItem = (deliverable: string, index: number, allDeliverables: string[]) => {
+    // Check if it's a main numbered section
+    const isNumbered = /^\d+(\.\d+)*/.test(deliverable);
     
-    const sectionId = match[1];
-    const restOfText = deliverable.substring(match[0].length).trim();
+    if (isNumbered) {
+      // Extract the number part and the rest of the text
+      const match = deliverable.match(/^(\d+(?:\.\d+)*)(.*)$/);
+      if (match) {
+        const [_, numberPart, textPart] = match;
+        return (
+          <div className="flex items-start gap-2">
+            <span className="inline-flex items-center justify-center min-w-6 h-6 bg-gray-800 text-white text-xs font-medium rounded-md px-1.5">
+              {numberPart}
+            </span>
+            <span>{textPart.trim()}</span>
+          </div>
+        );
+      }
+    }
     
+    // Return regular bullet point
     return (
-      <div className="flex items-center gap-2">
-        <span className="inline-flex items-center justify-center min-w-6 h-6 bg-gray-800 text-white text-xs font-medium rounded-md px-1.5">
-          {sectionId}
-        </span>
-        <span>{restOfText}</span>
+      <div className="flex items-start gap-2">
+        <span>•</span>
+        <span>{deliverable}</span>
       </div>
     );
   };
@@ -176,8 +202,11 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
             <h4 className="text-sm font-medium mb-3">Requirements</h4>
             <ul className="space-y-3">
               {deliverables.map((item, index) => (
-                <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item)}`}>
-                  {renderNumberBadge(item)}
+                <li 
+                  key={index} 
+                  className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item, index, deliverables)}`}
+                >
+                  {renderDeliverableItem(item, index, deliverables)}
                 </li>
               ))}
             </ul>

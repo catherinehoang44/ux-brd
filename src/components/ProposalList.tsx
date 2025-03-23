@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
@@ -101,30 +100,52 @@ const ProposalList: React.FC<ProposalListProps> = ({
           .map(item => {
             // Find all content for this requirement
             const contents = sheetData.requirementContents
-              .filter(content => content.key === item.key)
-              .sort((a, b) => {
-                // Sort by numeric part of the topic/bulletPoint if possible
-                const getNumericPart = (str: string) => {
-                  const match = str.match(/^(\d+(\.\d+)*)/);
-                  return match ? match[0] : str;
-                };
-                return getNumericPart(a.topic || a.bulletPoint).localeCompare(
-                  getNumericPart(b.topic || b.bulletPoint), 
-                  undefined, 
-                  { numeric: true, sensitivity: 'base' }
-                );
-              });
+              .filter(content => content.key === item.key);
+              
+            // Group content by topics - organize into main bullets and sub-bullets
+            const mainTopics = new Map<string, string[]>();
             
-            // Group content by topics
-            const deliverables: string[] = [];
-            
+            // First pass: identify all main topics 
             contents.forEach(content => {
-              if (content.topic) {
-                deliverables.push(content.topic);
-              } else if (content.bulletPoint) {
-                deliverables.push(content.bulletPoint);
+              if (content.topic && !content.bulletPoint) {
+                mainTopics.set(content.topic, []);
               }
             });
+            
+            // Second pass: add bullet points to their topics
+            contents.forEach(content => {
+              if (content.bulletPoint && content.topic && mainTopics.has(content.topic)) {
+                const bullets = mainTopics.get(content.topic) || [];
+                bullets.push(content.bulletPoint);
+                mainTopics.set(content.topic, bullets);
+              }
+            });
+            
+            // Create the deliverables array with proper formatting
+            const deliverables: string[] = [];
+            
+            // Add main topics and their bullets
+            mainTopics.forEach((bullets, topic) => {
+              // Add the main topic
+              deliverables.push(topic);
+              
+              // Add the sub-bullets for this topic
+              bullets.forEach(bullet => {
+                deliverables.push(`${bullet}`);
+              });
+            });
+            
+            // If no structured content was found, simply add all content as flat list
+            if (deliverables.length === 0) {
+              contents.forEach(content => {
+                if (content.topic) {
+                  deliverables.push(content.topic);
+                }
+                if (content.bulletPoint) {
+                  deliverables.push(content.bulletPoint);
+                }
+              });
+            }
             
             // Get stakeholders for this requirement
             const stakeholders = sheetData.signOffStakeholders
@@ -139,27 +160,6 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 url: link.link
               }));
             
-            // Add some mock data if nothing is found
-            if (deliverables.length === 0) {
-              console.log(`No content found for ${item.key}, adding mock data`);
-              deliverables.push("1.0 Basic Feature");
-              deliverables.push("1.1 Sub-feature description");
-            }
-            
-            if (stakeholders.length === 0) {
-              console.log(`No stakeholders found for ${item.key}, adding mock data`);
-              stakeholders.push("Product Manager");
-              stakeholders.push("Lead Developer");
-            }
-            
-            if (resources.length === 0) {
-              console.log(`No quick links found for ${item.key}, adding mock data`);
-              resources.push({
-                name: "Project Documentation",
-                url: "https://example.com/docs"
-              });
-            }
-            
             // Determine logo based on title
             let logo = logoComponents.testing;
             if (item.title.toLowerCase().includes('design')) {
@@ -171,6 +171,12 @@ const ProposalList: React.FC<ProposalListProps> = ({
             } else if (item.title.toLowerCase().includes('acceptance')) {
               logo = logoComponents.acceptance;
             }
+            
+            console.log(`Processed item ${item.key}:`, {
+              deliverables,
+              stakeholders,
+              resources
+            });
             
             return {
               id: item.key,
