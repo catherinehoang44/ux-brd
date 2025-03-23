@@ -13,6 +13,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import SortControls from './SortControls';
+import ExclusionsSection from './ExclusionsSection';
+import EmailUpdateBar from './EmailUpdateBar';
+import { getSheetData, addEmailUpdate } from '@/services/googleSheetService';
 
 interface ProposalListProps {
   className?: string;
