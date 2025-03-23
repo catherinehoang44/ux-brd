@@ -69,11 +69,6 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
   };
 
   const getIndentClass = (deliverable: string) => {
-    if (!deliverable) return "";
-    
-    // Check if it's a main section (e.g., "1.0 Something")
-    if (deliverable.match(/^\d+\.0/)) return "";
-    
     // Check how many dots are in the numbering
     const dotCount = (deliverable.match(/\./g) || []).length;
     
@@ -86,20 +81,24 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
 
   const renderNumberBadge = (deliverable: string) => {
     // Extract the number part from the deliverable
-    const match = deliverable.match(/^(\d+\.\d+(?:\.\d+)?)/);
-    if (!match) return deliverable;
+    const parts = deliverable.split(' ');
+    const firstPart = parts[0];
     
-    const sectionId = match[1];
-    const restOfText = deliverable.substring(match[0].length).trim();
+    // Check if the first part looks like a section number (e.g., "1.0", "1.1", etc.)
+    if (/^\d+(\.\d+)*$/.test(firstPart)) {
+      const restOfText = parts.slice(1).join(' ');
+      
+      return (
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center justify-center min-w-6 h-6 bg-gray-800 text-white text-xs font-medium rounded-md px-1.5">
+            {firstPart}
+          </span>
+          <span>{restOfText}</span>
+        </div>
+      );
+    }
     
-    return (
-      <div className="flex items-center gap-2">
-        <span className="inline-flex items-center justify-center min-w-6 h-6 bg-gray-800 text-white text-xs font-medium rounded-md px-1.5">
-          {sectionId}
-        </span>
-        <span>{restOfText}</span>
-      </div>
-    );
+    return <div>{deliverable}</div>;
   };
 
   return (
@@ -175,15 +174,13 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
         {deliverables && deliverables.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-3">Requirements</h4>
-            <ScrollArea className="max-h-[400px]">
-              <ul className="space-y-3">
-                {deliverables.map((item, index) => (
-                  <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item)}`}>
-                    {renderNumberBadge(item)}
-                  </li>
-                ))}
-              </ul>
-            </ScrollArea>
+            <ul className="space-y-3">
+              {deliverables.map((item, index) => (
+                <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item)}`}>
+                  {renderNumberBadge(item)}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
         
@@ -194,15 +191,13 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                 <Users className="h-4 w-4 text-muted-foreground" />
                 Sign-Off Stakeholders
               </h4>
-              <ScrollArea className="max-h-[200px]">
-                <ul className="space-y-1">
-                  {stakeholders.map((stakeholder, index) => (
-                    <li key={index} className="text-sm text-muted-foreground">
-                      • {stakeholder}
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea>
+              <ul className="space-y-1">
+                {stakeholders.map((stakeholder, index) => (
+                  <li key={index} className="text-sm text-muted-foreground">
+                    • {stakeholder}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
           
@@ -212,23 +207,21 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
                 <Link className="h-4 w-4 text-muted-foreground" />
                 Quick Links
               </h4>
-              <ScrollArea className="max-h-[200px]">
-                <ul className="space-y-1">
-                  {resources.map((resource, index) => (
-                    <li key={index}>
-                      <a
-                        href={resource.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline flex items-center gap-1"
-                      >
-                        • {resource.name}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea>
+              <ul className="space-y-1">
+                {resources.map((resource, index) => (
+                  <li key={index}>
+                    <a
+                      href={resource.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline flex items-center gap-1"
+                    >
+                      • {resource.name}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

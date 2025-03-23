@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
@@ -93,6 +94,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
         const requirementsData = sheetData.requirementDropdowns
           .filter(item => item.display && item.documentVersion === selectedVersion)
           .map(item => {
+            // First, get all content for this requirement
             const contents = sheetData.requirementContents
               .filter(content => content.key === item.key)
               .sort((a, b) => {
@@ -107,15 +109,41 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 );
               });
 
+            // Create formatted deliverables with proper numbering
+            let sectionCounter = 1;
+            let subSectionCounter = 0;
             const deliverables: string[] = [];
+            
+            // Group contents by topic
+            const topicMap = new Map();
+            
             contents.forEach(content => {
               if (content.topic && content.topic.trim() !== '') {
-                deliverables.push(content.topic);
+                // This is a main topic
+                topicMap.set(content.topic, []);
               }
-              if (content.bulletPoint && content.bulletPoint.trim() !== '') {
-                deliverables.push(content.bulletPoint);
+              
+              if (content.bulletPoint && content.bulletPoint.trim() !== '' && content.topic) {
+                // This is a bullet point that belongs to a topic
+                const bullets = topicMap.get(content.topic) || [];
+                bullets.push(content.bulletPoint);
+                topicMap.set(content.topic, bullets);
               }
             });
+            
+            // Format the topics and bullet points with proper numbering
+            for (const [topic, bullets] of topicMap.entries()) {
+              const topicNumber = `${sectionCounter}.0`;
+              deliverables.push(`${topicNumber} ${topic}`);
+              
+              // Add bullet points for this topic
+              bullets.forEach((bullet: string, idx: number) => {
+                const bulletNumber = `${sectionCounter}.${idx + 1}`;
+                deliverables.push(`${bulletNumber} ${bullet}`);
+              });
+              
+              sectionCounter++;
+            }
             
             const stakeholders = sheetData.signOffStakeholders
               .filter(stakeholder => stakeholder.key === item.key)
@@ -257,33 +285,31 @@ const ProposalList: React.FC<ProposalListProps> = ({
       )}
       
       {!loading && !error && (
-        <ScrollArea className="h-[600px] w-full pr-4">
-          <div className="space-y-8">
-            {displayItems.length > 0 ? (
-              displayItems.map((item) => (
-                <div key={item.id} className="mb-8 relative transition-all duration-300">
-                  <ProposalItem
-                    company={item.company}
-                    logo={item.logo}
-                    role={item.role}
-                    location={item.location}
-                    timeAgo={item.timeAgo}
-                    description={item.description}
-                    deliverables={item.deliverables}
-                    notes={item.notes}
-                    stakeholders={item.stakeholders}
-                    resources={item.resources}
-                    overviewNote={item.overviewNote}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="py-10 text-center">
-                <p className="text-gray-500">No requirements available for {selectedVersion}. Add some to the Google Sheet.</p>
+        <div className="space-y-8">
+          {displayItems.length > 0 ? (
+            displayItems.map((item) => (
+              <div key={item.id} className="mb-8 relative transition-all duration-300">
+                <ProposalItem
+                  company={item.company}
+                  logo={item.logo}
+                  role={item.role}
+                  location={item.location}
+                  timeAgo={item.timeAgo}
+                  description={item.description}
+                  deliverables={item.deliverables}
+                  notes={item.notes}
+                  stakeholders={item.stakeholders}
+                  resources={item.resources}
+                  overviewNote={item.overviewNote}
+                />
               </div>
-            )}
-          </div>
-        </ScrollArea>
+            ))
+          ) : (
+            <div className="py-10 text-center">
+              <p className="text-gray-500">No requirements available for {selectedVersion}. Add some to the Google Sheet.</p>
+            </div>
+          )}
+        </div>
       )}
       
       <ExclusionsSection exclusions={exclusions} hidden={hideExclusions} />

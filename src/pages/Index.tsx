@@ -88,31 +88,33 @@ const Index = () => {
       lastUpdated={lastUpdated}
       hideApprovalButton={true} // Keep approval button hidden
     >
-      <div className="flex flex-col gap-12 pb-24">
-        <div className="w-full max-w-4xl">
-          <h2 className="text-xl font-medium mb-5">Objective</h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-            This document outlines the comprehensive UX business requirements for the Adobe Certification Portal (ACP). 
-            The ACP serves as the primary platform for users to discover, register for, complete, and manage their Adobe DX product certifications.
-          </p>
-          {isLoading ? (
-            <div className="py-20 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
-              <p className="text-gray-500">Loading requirements data from Excel...</p>
-            </div>
-          ) : (
-            <ProposalList 
-              isEmailBarVisible={isEmailBarVisible} 
-              onToggleEmailBar={handleToggleEmailBar}
-              onSubscribe={handleSubscribe}
-              isSubscribed={isSubscribed}
-              exclusions={exclusions}
-              hideExclusions={true}
-              selectedVersion={selectedVersion}
-            />
-          )}
+      <ScrollArea className="h-[calc(100vh-80px)] w-full pr-4">
+        <div className="flex flex-col gap-12 pb-24 px-4">
+          <div className="w-full max-w-4xl">
+            <h2 className="text-xl font-medium mb-5">Objective</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+              This document outlines the comprehensive UX business requirements for the Adobe Certification Portal (ACP). 
+              The ACP serves as the primary platform for users to discover, register for, complete, and manage their Adobe DX product certifications.
+            </p>
+            {isLoading ? (
+              <div className="py-20 text-center">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
+                <p className="text-gray-500">Loading requirements data from Excel...</p>
+              </div>
+            ) : (
+              <ProposalList 
+                isEmailBarVisible={isEmailBarVisible} 
+                onToggleEmailBar={handleToggleEmailBar}
+                onSubscribe={handleSubscribe}
+                isSubscribed={isSubscribed}
+                exclusions={exclusions}
+                hideExclusions={true}
+                selectedVersion={selectedVersion}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      </ScrollArea>
     </ProposalLayout>
   );
 };
