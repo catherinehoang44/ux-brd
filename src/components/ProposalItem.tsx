@@ -69,12 +69,21 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
 
   const getIndentClass = (deliverable: string) => {
     // Check how many dots are in the numbering
-    const dotCount = (deliverable.match(/\./g) || []).length;
+    const match = deliverable.match(/^(\d+(\.\d+)*)/);
+    if (!match) return "";
+    
+    const number = match[0];
+    const dotCount = (number.match(/\./g) || []).length;
     
     switch (dotCount) {
-      case 1: return "ml-3"; // Reduced first level indent for x.y
-      case 2: return "ml-6"; // Reduced second level indent for x.y.z
-      default: return ""; // No indent for main sections
+      case 0: // For main bullets (1.0, 2.0)
+        return ""; 
+      case 1: // For sub-bullets (1.1, 2.1)
+        return "ml-6";
+      case 2: // For sub-sub-bullets (1.1.1)
+        return "ml-12";
+      default:
+        return "ml-" + (dotCount * 6); // Additional levels
     }
   };
 
