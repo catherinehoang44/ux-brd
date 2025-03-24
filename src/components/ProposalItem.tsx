@@ -68,28 +68,32 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
   };
 
   const getIndentClass = (deliverable: string) => {
-    // Check how many dots are in the numbering
-    const match = deliverable.match(/^(\d+(\.\d+)*)/);
+    // Improved regex to better capture the numbering pattern
+    const match = deliverable.match(/^\s*(\d+(\.\d+)*)/);
     if (!match) return "";
     
-    const number = match[0];
+    const number = match[1];
+    // Count dots to determine level
     const dotCount = (number.match(/\./g) || []).length;
     
-    switch (dotCount) {
-      case 0: // For main bullets (1.0, 2.0)
-        return ""; 
-      case 1: // For sub-bullets (1.1, 2.1)
-        return "ml-6";
-      case 2: // For sub-sub-bullets (1.1.1)
-        return "ml-12";
-      default:
-        return "ml-" + (dotCount * 6); // Additional levels
+    // Log for debugging
+    console.log(`Deliverable: ${deliverable}, Number: ${number}, Dots: ${dotCount}`);
+    
+    // Apply indentation based on dot count
+    if (dotCount === 0) {
+      return ""; // No indent for main sections like "1.0"
+    } else if (dotCount === 1) {
+      return "ml-6"; // First level indent for sections like "1.1"
+    } else if (dotCount === 2) {
+      return "ml-12"; // Second level indent for sections like "1.1.1"
+    } else {
+      return `ml-${dotCount * 6}`; // Scale for deeper levels
     }
   };
 
   const renderNumberBadge = (deliverable: string) => {
-    // Extract the number part from the deliverable
-    const parts = deliverable.split(' ');
+    // Extract the number part from the deliverable more reliably
+    const parts = deliverable.trim().split(/\s+/);
     const firstPart = parts[0];
     
     // Check if the first part looks like a section number (e.g., "1.0", "1.1", etc.)
@@ -162,11 +166,15 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
           <div>
             <h4 className="text-sm font-medium mb-3">Requirements</h4>
             <ul className="space-y-3">
-              {deliverables.map((item, index) => (
-                <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${getIndentClass(item)}`}>
-                  {renderNumberBadge(item)}
-                </li>
-              ))}
+              {deliverables.map((item, index) => {
+                const indentClass = getIndentClass(item);
+                console.log(`Item ${index}: "${item}", class: "${indentClass}"`);
+                return (
+                  <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${indentClass}`}>
+                    {renderNumberBadge(item)}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
