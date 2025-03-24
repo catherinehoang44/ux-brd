@@ -5,6 +5,7 @@ import { CheckSquare } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { recordDocumentApproval } from '@/services/googleSheetService';
+import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 
 interface HeaderProps {
   title: string;
@@ -15,7 +16,7 @@ interface HeaderProps {
   selectedVersion?: string;
   onVersionChange?: (version: string) => void;
   lastUpdated?: string;
-  hideApprovalButton?: boolean; // New prop to hide the approval button
+  hideApprovalButton?: boolean; // We'll keep this prop but make it false by default
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -27,36 +28,9 @@ const Header: React.FC<HeaderProps> = ({
   selectedVersion = 'FY25 Q2',
   onVersionChange,
   lastUpdated = 'March 17, 2025',
-  hideApprovalButton = true // Default to hidden
+  hideApprovalButton = false // Changed default to false to show the button
 }) => {
-  const [isApproved, setIsApproved] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const handleApproval = async () => {
-    setIsSubmitting(true);
-    const newApprovalState = !isApproved;
-    
-    try {
-      // Record the approval or removal in Google Sheets
-      const type = newApprovalState ? 'Approval Given' : 'Approval Removed';
-      const success = await recordDocumentApproval(type, selectedVersion);
-      
-      if (success) {
-        setIsApproved(newApprovalState);
-        
-        if (onApproval) {
-          onApproval(newApprovalState);
-        }
-      } else {
-        toast.error("Failed to record approval status. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error recording approval:", error);
-      toast.error("An error occurred. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   const handleVersionChange = (version: string) => {
     if (onVersionChange) {
@@ -92,19 +66,31 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         )}
         {!hideApprovalButton && (
-          <Button 
-            variant={isApproved ? "default" : "outline"}
-            className={`rounded-full px-6 py-2 transition-all duration-500 ${
-              isApproved 
-                ? "bg-green-500 hover:bg-green-600 text-white transform hover:scale-105" 
-                : "border border-border bg-white hover:bg-secondary dark:bg-background dark:hover:bg-secondary"
-            }`}
-            onClick={handleApproval}
-            disabled={isSubmitting}
-          >
-            <CheckSquare className={`mr-2 h-4 w-4 transition-all duration-300 ${isApproved ? 'scale-110' : ''}`} />
-            {isSubmitting ? "Processing..." : (isApproved ? "Remove Approval" : price)}
-          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline"
+                className="rounded-full px-6 py-2 transition-all duration-500 border border-border bg-white hover:bg-secondary dark:bg-background dark:hover:bg-secondary"
+              >
+                <CheckSquare className="mr-2 h-4 w-4" />
+                {price}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold">Document Approval</h2>
+                <p className="text-sm text-muted-foreground mb-6">
+                  This feature is coming soon. For now, we will approve documents on call. Please email or Slack <a href="mailto:catherineh@adobe.com" className="text-primary hover:underline">catherineh@adobe.com</a> for more questions or details.
+                </p>
+                <Button 
+                  onClick={() => setDialogOpen(false)} 
+                  className="w-full"
+                >
+                  Close
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
     </div>

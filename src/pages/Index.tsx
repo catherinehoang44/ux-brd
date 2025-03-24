@@ -86,7 +86,7 @@ const Index = () => {
       selectedVersion={selectedVersion}
       onVersionChange={handleVersionChange}
       lastUpdated={lastUpdated}
-      hideApprovalButton={true} // Keep approval button hidden
+      hideApprovalButton={false} // Changed to false to show the approval button
     >
       <ScrollArea className="h-[calc(100vh-80px)] w-full pr-4">
         <div className="flex flex-col gap-12 pb-24 px-4">
