@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
@@ -49,7 +48,6 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Function to get priority color
   const getPriorityColor = (priority?: string) => {
     if (!priority) return "bg-gray-200 text-gray-700";
     
@@ -67,16 +65,12 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
     }
   };
 
-  // This is a completely new approach for handling indentation
   const renderDeliverable = (deliverable: string, index: number) => {
-    // Clean the deliverable text and extract numbering
     const trimmedDeliverable = deliverable.trim();
     
-    // New simpler approach: Check if the text starts with a number pattern
-    const numberMatch = trimmedDeliverable.match(/^(\d+\.\d+(\.\d+)*)\s+(.*)$/);
+    const numberMatch = trimmedDeliverable.match(/^(\d+(\.\d+)*)(\s+)(.*)$/);
     
     if (!numberMatch) {
-      // If no numbering pattern, just return the text as is
       return (
         <li key={index} className="text-sm text-muted-foreground mb-3">
           {trimmedDeliverable}
@@ -84,34 +78,34 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
       );
     }
     
-    const [_, numberPart, __, textPart] = numberMatch;
+    const [_, numberPart, __, ___, textPart] = numberMatch;
+    console.log(`Parsing deliverable: ${trimmedDeliverable} -> Number: ${numberPart}, Text: ${textPart}`);
     
-    // Count the dots to determine the level of nesting
     const dotCount = (numberPart.match(/\./g) || []).length;
     
-    // Determine indentation class based on dot count
+    const segments = numberPart.split('.');
+    
     let indentClass = '';
-    let bgClass = '';
+    let styleClass = '';
     
     if (numberPart.endsWith('.0')) {
-      // Main sections like 1.0, 2.0 - no indent, bold style
       indentClass = "";
-      bgClass = "font-medium text-foreground";
-    } else if (dotCount === 1) {
-      // First level like 1.1, 2.1 - small indent
+      styleClass = "font-medium text-foreground";
+    } else if (segments.length === 2 && segments[1] !== '0') {
       indentClass = "ml-6";
-    } else if (dotCount === 2) {
-      // Second level like 1.1.1 - larger indent
+      styleClass = "text-muted-foreground";
+    } else if (segments.length === 3) {
       indentClass = "ml-12";
+      styleClass = "text-muted-foreground";
     } else {
-      // Deeper levels - scale indentation
       indentClass = `ml-${(dotCount) * 6}`;
+      styleClass = "text-muted-foreground";
     }
     
-    console.log(`Deliverable ${index}: "${trimmedDeliverable}" -> Number: "${numberPart}", Text: "${textPart}", Indent: "${indentClass}"`);
+    console.log(`Deliverable ${index}: Indent class=${indentClass}, Style class=${styleClass}`);
     
     return (
-      <li key={index} className={`flex items-start text-sm text-muted-foreground mb-3 ${indentClass} ${bgClass}`}>
+      <li key={index} className={`flex items-start text-sm mb-3 ${indentClass} ${styleClass}`}>
         <div className="flex items-start gap-2">
           <span className="inline-flex items-center justify-center min-w-[24px] h-6 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium rounded-md px-1.5 mr-2">
             {numberPart}

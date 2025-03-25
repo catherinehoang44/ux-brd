@@ -1,4 +1,3 @@
-
 interface RequirementDropdown {
   display: boolean;
   documentVersion: string;
@@ -14,6 +13,7 @@ interface RequirementContent {
   key: string;
   topic: string;
   bulletPoint: string;
+  subBulletPoint?: string;
 }
 
 interface SignOffStakeholder {
@@ -50,7 +50,6 @@ interface SheetData {
 import { toast } from "sonner";
 import * as XLSX from 'xlsx';
 
-// Updated URL to fetch XLSX instead of CSV
 const XLSX_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEkwZQNs2I4eWnLlwXMp7oR7y9-CdxlMMn4t2HeqCUfA9JdQnoOMroFJM2OqzPtiLIWTjki1f4TyJB/pub?output=xlsx";
 
 async function fetchXLSX(): Promise<ArrayBuffer> {
@@ -67,7 +66,6 @@ async function fetchXLSX(): Promise<ArrayBuffer> {
   }
 }
 
-// Format date to human-readable format like "March 4, 2005"
 function formatDate(dateString: string): string {
   try {
     const date = new Date(dateString);
@@ -91,7 +89,6 @@ export async function getSheetData(): Promise<SheetData> {
     const arrayBuffer = await fetchXLSX();
     const workbook = XLSX.read(arrayBuffer, {type: 'array'});
     
-    // Initialize data structures
     const requirementDropdowns: RequirementDropdown[] = [];
     const requirementContents: RequirementContent[] = [];
     const signOffStakeholders: SignOffStakeholder[] = [];
@@ -99,15 +96,12 @@ export async function getSheetData(): Promise<SheetData> {
     const documentVersions = new Set<string>();
     let lastUpdated = formatDate(new Date().toLocaleDateString());
     
-    // Log all available sheet names
     console.log("Available sheets:", workbook.SheetNames);
     
-    // Process Requirements Dropdown sheet
     if (workbook.SheetNames.includes('Requirements Dropdown')) {
       const dropdownSheet = workbook.Sheets['Requirements Dropdown'];
       const dropdownData = XLSX.utils.sheet_to_json<any>(dropdownSheet, {header: 1});
       
-      // Skip header row
       for (let i = 1; i < dropdownData.length; i++) {
         const row = dropdownData[i];
         if (!row || row.length < 3) continue;
@@ -130,7 +124,6 @@ export async function getSheetData(): Promise<SheetData> {
           note: String(row[7] || '')
         });
         
-        // Update last updated date if Review By is more recent
         if (row[6]) {
           try {
             const rowDate = new Date(row[6]);
@@ -147,12 +140,10 @@ export async function getSheetData(): Promise<SheetData> {
       }
     }
     
-    // Process Requirements Content sheet
     if (workbook.SheetNames.includes('Requirements Content')) {
       const contentSheet = workbook.Sheets['Requirements Content'];
       const contentData = XLSX.utils.sheet_to_json<any>(contentSheet, {header: 1});
       
-      // Skip header row
       for (let i = 1; i < contentData.length; i++) {
         const row = contentData[i];
         if (!row || row.length < 2) continue;
@@ -160,17 +151,16 @@ export async function getSheetData(): Promise<SheetData> {
         requirementContents.push({
           key: String(row[0] || ''),
           topic: String(row[1] || ''),
-          bulletPoint: String(row[2] || '')
+          bulletPoint: String(row[2] || ''),
+          subBulletPoint: row[3] ? String(row[3]) : undefined
         });
       }
     }
     
-    // Process Sign-Off Stakeholders sheet
     if (workbook.SheetNames.includes('Sign-Off Stakeholders')) {
       const stakeholderSheet = workbook.Sheets['Sign-Off Stakeholders'];
       const stakeholderData = XLSX.utils.sheet_to_json<any>(stakeholderSheet, {header: 1});
       
-      // Skip header row
       for (let i = 1; i < stakeholderData.length; i++) {
         const row = stakeholderData[i];
         if (!row || row.length < 2) continue;
@@ -182,12 +172,10 @@ export async function getSheetData(): Promise<SheetData> {
       }
     }
     
-    // Process Quick Links sheet
     if (workbook.SheetNames.includes('Quick Links')) {
       const linksSheet = workbook.Sheets['Quick Links'];
       const linksData = XLSX.utils.sheet_to_json<any>(linksSheet, {header: 1});
       
-      // Skip header row
       for (let i = 1; i < linksData.length; i++) {
         const row = linksData[i];
         if (!row || row.length < 3) continue;
@@ -220,13 +208,9 @@ export async function getSheetData(): Promise<SheetData> {
   }
 }
 
-// Write to Google Sheets functions (via proxy)
 export async function addEmailUpdate(email: string, type: string = "BRD Updates"): Promise<boolean> {
   try {
     console.log(`Email subscription added: ${email} for ${type}`);
-    // In a real implementation, this would send the data to a server endpoint that updates Google Sheets
-    // Currently, we cannot directly write to Google Sheets without server-side code
-    // For now, just log and return success
     toast.success(`Added ${email} to Email Updates table with type: ${type}`);
     return true;
   } catch (error) {
@@ -239,9 +223,6 @@ export async function recordDocumentApproval(type: string, documentVersion: stri
   try {
     const timestamp = new Date().toISOString();
     console.log(`Document approval recorded: ${type} for ${documentVersion} at ${timestamp}`);
-    // In a real implementation, this would send the data to a server endpoint that updates Google Sheets
-    // Currently, we cannot directly write to Google Sheets without server-side code
-    // For now, just log and return success
     toast.success(`Added "${type}" record for ${documentVersion} to Document Approvals table`);
     return true;
   } catch (error) {

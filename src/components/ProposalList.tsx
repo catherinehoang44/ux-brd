@@ -128,41 +128,71 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 );
               });
             
-            // Create a map to group bullet points by their topic
-            const topicMap = new Map<string, string[]>();
+            // Create a hierarchical structure for topics, bullets, and sub-bullets
+            const topicMap = new Map<string, Map<string, string[]>>();
             
             // First, collect all unique topics
             contents.forEach(content => {
               if (content.topic && content.topic.trim() !== '') {
                 if (!topicMap.has(content.topic)) {
-                  topicMap.set(content.topic, []);
+                  topicMap.set(content.topic, new Map<string, string[]>());
                 }
               }
             });
             
-            // Then add all bullet points to their respective topics
+            // Then organize bullet points and sub-bullet points
             contents.forEach(content => {
-              if (content.bulletPoint && content.bulletPoint.trim() !== '' && content.topic && topicMap.has(content.topic)) {
-                const bullets = topicMap.get(content.topic) || [];
-                bullets.push(content.bulletPoint);
-                topicMap.set(content.topic, bullets);
+              if (content.topic && topicMap.has(content.topic)) {
+                const bulletMap = topicMap.get(content.topic)!;
+                
+                // If there's a bullet point
+                if (content.bulletPoint && content.bulletPoint.trim() !== '') {
+                  // Add bullet point as a key if it doesn't exist
+                  if (!bulletMap.has(content.bulletPoint)) {
+                    bulletMap.set(content.bulletPoint, []);
+                  }
+                  
+                  // If there's a sub-bullet point, add it to the bullet point's array
+                  if (content.subBulletPoint && content.subBulletPoint.trim() !== '') {
+                    const subBullets = bulletMap.get(content.bulletPoint) || [];
+                    subBullets.push(content.subBulletPoint);
+                    bulletMap.set(content.bulletPoint, subBullets);
+                  }
+                }
               }
             });
             
-            console.log(`Topic map for ${item.key}:`, Object.fromEntries(topicMap));
+            console.log(`Hierarchical structure for ${item.key}:`, 
+              Object.fromEntries(
+                Array.from(topicMap.entries()).map(([topic, bulletMap]) => [
+                  topic, 
+                  Object.fromEntries(bulletMap)
+                ])
+              )
+            );
             
-            // Generate deliverables with proper numbering
+            // Generate deliverables with proper hierarchical numbering
             let sectionCounter = 1;
             const deliverables: string[] = [];
             
-            for (const [topic, bullets] of topicMap.entries()) {
+            for (const [topic, bulletMap] of topicMap.entries()) {
               const topicNumber = `${sectionCounter}.0`;
               deliverables.push(`${topicNumber} ${topic}`);
               
-              bullets.forEach((bullet: string, idx: number) => {
-                const bulletNumber = `${sectionCounter}.${idx + 1}`;
+              let bulletCounter = 1;
+              for (const [bullet, subBullets] of bulletMap.entries()) {
+                const bulletNumber = `${sectionCounter}.${bulletCounter}`;
                 deliverables.push(`${bulletNumber} ${bullet}`);
-              });
+                
+                let subBulletCounter = 1;
+                for (const subBullet of subBullets) {
+                  const subBulletNumber = `${sectionCounter}.${bulletCounter}.${subBulletCounter}`;
+                  deliverables.push(`${subBulletNumber} ${subBullet}`);
+                  subBulletCounter++;
+                }
+                
+                bulletCounter++;
+              }
               
               sectionCounter++;
             }
