@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
@@ -47,6 +48,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
   overviewNote
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [activeBullet, setActiveBullet] = React.useState<number | null>(null);
 
   const getPriorityColor = (priority?: string) => {
     if (!priority) return "bg-gray-200 text-gray-700";
@@ -72,45 +74,53 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
     
     if (!numberMatch) {
       return (
-        <li key={index} className="text-sm text-muted-foreground mb-3">
+        <li key={index} className="text-sm text-muted-foreground mb-4">
           {trimmedDeliverable}
         </li>
       );
     }
     
     const [_, numberPart, __, ___, textPart] = numberMatch;
-    console.log(`Parsing deliverable: ${trimmedDeliverable} -> Number: ${numberPart}, Text: ${textPart}`);
-    
-    const dotCount = (numberPart.match(/\./g) || []).length;
     
     const segments = numberPart.split('.');
     
     let indentClass = '';
     let styleClass = '';
     
+    // Set styling based on hierarchy level
     if (numberPart.endsWith('.0')) {
+      // Main header (1.0, 2.0, etc.)
       indentClass = "";
-      styleClass = "font-medium text-foreground";
+      styleClass = "font-semibold text-foreground";
     } else if (segments.length === 2 && segments[1] !== '0') {
+      // First-level bullet (1.1, 1.2, 2.1, etc.)
       indentClass = "ml-6";
-      styleClass = "text-muted-foreground";
+      styleClass = "text-slate-700 dark:text-slate-300";
     } else if (segments.length === 3) {
+      // Second-level bullet (1.1.1, 1.1.2, etc.)
       indentClass = "ml-12";
-      styleClass = "text-muted-foreground";
+      styleClass = "text-slate-600 dark:text-slate-400";
     } else {
-      indentClass = `ml-${(dotCount) * 6}`;
-      styleClass = "text-muted-foreground";
+      // Any other level
+      const dotCount = (numberPart.match(/\./g) || []).length;
+      indentClass = `ml-${dotCount * 6}`;
+      styleClass = "text-slate-500 dark:text-slate-500";
     }
     
-    console.log(`Deliverable ${index}: Indent class=${indentClass}, Style class=${styleClass}`);
+    const isActive = activeBullet === index;
     
     return (
-      <li key={index} className={`flex items-start text-sm mb-3 ${indentClass} ${styleClass}`}>
-        <div className="flex items-start gap-2">
-          <span className="inline-flex items-center justify-center min-w-[24px] h-6 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium rounded-md px-1.5 mr-2">
+      <li 
+        key={index} 
+        className={`flex items-start text-sm ${indentClass} ${styleClass} transition-all duration-200 mb-5 hover:translate-x-1`}
+        onMouseEnter={() => setActiveBullet(index)}
+        onMouseLeave={() => setActiveBullet(null)}
+      >
+        <div className={`flex items-start gap-2 transition-all duration-200 ${isActive ? 'scale-102' : ''}`}>
+          <span className={`inline-flex items-center justify-center min-w-[24px] h-6 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-xs font-medium rounded-md px-1.5 mr-2 transition-colors duration-200 ${isActive ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground' : ''}`}>
             {numberPart}
           </span>
-          <span>{textPart}</span>
+          <span className={`transition-all duration-200 ${isActive ? 'text-primary dark:text-primary-foreground' : ''}`}>{textPart}</span>
         </div>
       </li>
     );
@@ -163,26 +173,28 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
         </div>
       </div>
       
-      <CollapsibleContent className="mt-6 space-y-6 bg-gray-50 p-5 rounded-md dark:bg-gray-800/50">
+      <CollapsibleContent className="mt-6 space-y-6 bg-gray-50 p-5 rounded-md dark:bg-gray-800/50 animate-accordion-down">
         {deliverables && deliverables.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium mb-3">Requirements</h4>
-            <ul className="space-y-1">
-              {deliverables.map((item, index) => renderDeliverable(item, index))}
-            </ul>
+            <h4 className="text-sm font-medium mb-5">Requirements</h4>
+            <ScrollArea className="max-h-[500px] pr-4">
+              <ul className="space-y-1">
+                {deliverables.map((item, index) => renderDeliverable(item, index))}
+              </ul>
+            </ScrollArea>
           </div>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
           {stakeholders && stakeholders.length > 0 && (
-            <div>
+            <div className="hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-md p-3 transition-colors duration-200">
               <h4 className="text-sm font-medium mb-3 flex items-center gap-1">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 Sign-Off Stakeholders
               </h4>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 {stakeholders.map((stakeholder, index) => (
-                  <li key={index} className="text-sm text-muted-foreground">
+                  <li key={index} className="text-sm text-muted-foreground hover:translate-x-1 transition-transform duration-200">
                     • {stakeholder}
                   </li>
                 ))}
@@ -191,14 +203,14 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
           )}
           
           {resources && resources.length > 0 && (
-            <div>
+            <div className="hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-md p-3 transition-colors duration-200">
               <h4 className="text-sm font-medium mb-3 flex items-center gap-1">
                 <Link className="h-4 w-4 text-muted-foreground" />
                 Quick Links
               </h4>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 {resources.map((resource, index) => (
-                  <li key={index}>
+                  <li key={index} className="hover:translate-x-1 transition-transform duration-200">
                     <a
                       href={resource.url}
                       target="_blank"
@@ -215,7 +227,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
           )}
         </div>
         
-        <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
+        <div className="flex justify-between items-center mt-3 pt-3 border-t border-border animate-fade-in">
           {notes && (
             <span className="text-xs flex items-center gap-1">
               <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
