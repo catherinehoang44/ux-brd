@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import ProposalItem from './ProposalItem';
 import { cn } from '@/lib/utils';
@@ -112,6 +113,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
         const requirementsData = sheetData.requirementDropdowns
           .filter(item => item.display && item.documentVersion === selectedVersion)
           .map(item => {
+            // Get all content items for this requirement key
             const contents = sheetData.requirementContents
               .filter(content => content.key === item.key)
               .sort((a, b) => {
@@ -126,23 +128,32 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 );
               });
             
-            let sectionCounter = 1;
-            let subSectionCounter = 0;
-            const deliverables: string[] = [];
+            // Create a map to group bullet points by their topic
+            const topicMap = new Map<string, string[]>();
             
-            const topicMap = new Map();
-            
+            // First, collect all unique topics
             contents.forEach(content => {
               if (content.topic && content.topic.trim() !== '') {
-                topicMap.set(content.topic, []);
+                if (!topicMap.has(content.topic)) {
+                  topicMap.set(content.topic, []);
+                }
               }
-              
-              if (content.bulletPoint && content.bulletPoint.trim() !== '' && content.topic) {
+            });
+            
+            // Then add all bullet points to their respective topics
+            contents.forEach(content => {
+              if (content.bulletPoint && content.bulletPoint.trim() !== '' && content.topic && topicMap.has(content.topic)) {
                 const bullets = topicMap.get(content.topic) || [];
                 bullets.push(content.bulletPoint);
                 topicMap.set(content.topic, bullets);
               }
             });
+            
+            console.log(`Topic map for ${item.key}:`, Object.fromEntries(topicMap));
+            
+            // Generate deliverables with proper numbering
+            let sectionCounter = 1;
+            const deliverables: string[] = [];
             
             for (const [topic, bullets] of topicMap.entries()) {
               const topicNumber = `${sectionCounter}.0`;
