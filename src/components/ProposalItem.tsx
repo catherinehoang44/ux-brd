@@ -67,50 +67,59 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
     }
   };
 
-  const getIndentClass = (deliverable: string) => {
-    // Improved regex to better capture the numbering pattern
-    const match = deliverable.match(/^\s*(\d+(\.\d+)*)/);
-    if (!match) return "";
+  // This is a completely new approach for handling indentation
+  const renderDeliverable = (deliverable: string, index: number) => {
+    // Clean the deliverable text and extract numbering
+    const trimmedDeliverable = deliverable.trim();
     
-    const number = match[1];
-    // Count dots to determine level
-    const dotCount = (number.match(/\./g) || []).length;
+    // New simpler approach: Check if the text starts with a number pattern
+    const numberMatch = trimmedDeliverable.match(/^(\d+\.\d+(\.\d+)*)\s+(.*)$/);
     
-    // Log for debugging
-    console.log(`Deliverable: ${deliverable}, Number: ${number}, Dots: ${dotCount}`);
-    
-    // Apply indentation based on dot count
-    if (dotCount === 0) {
-      return ""; // No indent for main sections like "1.0"
-    } else if (dotCount === 1) {
-      return "ml-6"; // First level indent for sections like "1.1"
-    } else if (dotCount === 2) {
-      return "ml-12"; // Second level indent for sections like "1.1.1"
-    } else {
-      return `ml-${dotCount * 6}`; // Scale for deeper levels
-    }
-  };
-
-  const renderNumberBadge = (deliverable: string) => {
-    // Extract the number part from the deliverable more reliably
-    const parts = deliverable.trim().split(/\s+/);
-    const firstPart = parts[0];
-    
-    // Check if the first part looks like a section number (e.g., "1.0", "1.1", etc.)
-    if (/^\d+(\.\d+)*$/.test(firstPart)) {
-      const restOfText = parts.slice(1).join(' ');
-      
+    if (!numberMatch) {
+      // If no numbering pattern, just return the text as is
       return (
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center min-w-6 h-6 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium rounded-md px-1.5">
-            {firstPart}
-          </span>
-          <span>{restOfText}</span>
-        </div>
+        <li key={index} className="text-sm text-muted-foreground mb-3">
+          {trimmedDeliverable}
+        </li>
       );
     }
     
-    return <div>{deliverable}</div>;
+    const [_, numberPart, __, textPart] = numberMatch;
+    
+    // Count the dots to determine the level of nesting
+    const dotCount = (numberPart.match(/\./g) || []).length;
+    
+    // Determine indentation class based on dot count
+    let indentClass = '';
+    let bgClass = '';
+    
+    if (numberPart.endsWith('.0')) {
+      // Main sections like 1.0, 2.0 - no indent, bold style
+      indentClass = "";
+      bgClass = "font-medium text-foreground";
+    } else if (dotCount === 1) {
+      // First level like 1.1, 2.1 - small indent
+      indentClass = "ml-6";
+    } else if (dotCount === 2) {
+      // Second level like 1.1.1 - larger indent
+      indentClass = "ml-12";
+    } else {
+      // Deeper levels - scale indentation
+      indentClass = `ml-${(dotCount) * 6}`;
+    }
+    
+    console.log(`Deliverable ${index}: "${trimmedDeliverable}" -> Number: "${numberPart}", Text: "${textPart}", Indent: "${indentClass}"`);
+    
+    return (
+      <li key={index} className={`flex items-start text-sm text-muted-foreground mb-3 ${indentClass} ${bgClass}`}>
+        <div className="flex items-start gap-2">
+          <span className="inline-flex items-center justify-center min-w-[24px] h-6 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium rounded-md px-1.5 mr-2">
+            {numberPart}
+          </span>
+          <span>{textPart}</span>
+        </div>
+      </li>
+    );
   };
 
   return (
@@ -129,7 +138,6 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-medium">{company}</h3>
-                {/* Info icon removed as requested */}
               </div>
               <p className="text-muted-foreground text-sm">{role}</p>
               {additionalInfo && (
@@ -165,16 +173,8 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
         {deliverables && deliverables.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-3">Requirements</h4>
-            <ul className="space-y-3">
-              {deliverables.map((item, index) => {
-                const indentClass = getIndentClass(item);
-                console.log(`Item ${index}: "${item}", class: "${indentClass}"`);
-                return (
-                  <li key={index} className={`flex items-start gap-2 text-sm text-muted-foreground ${indentClass}`}>
-                    {renderNumberBadge(item)}
-                  </li>
-                );
-              })}
+            <ul className="space-y-1">
+              {deliverables.map((item, index) => renderDeliverable(item, index))}
             </ul>
           </div>
         )}
